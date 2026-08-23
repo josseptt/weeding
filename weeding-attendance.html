@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="google" content="notranslate">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Invitados - Boda</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #e8ede8 0%, #d4ddd4 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      color: #5F735F;
+    }
+
+    .header p {
+      color: #666;
+      font-size: 1.1rem;
+    }
+
+    .search-box {
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 15px 20px;
+      font-size: 1rem;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .search-box input:focus {
+      border-color: #5F735F;
+    }
+
+    .filters {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .filter-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 2px solid #ddd;
+      transition: all 0.3s;
+      user-select: none;
+    }
+
+    .filter-checkbox:hover {
+      border-color: #5F735F;
+      background-color: #f5f9f5;
+    }
+
+    .filter-checkbox input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #5F735F;
+    }
+
+    .filter-checkbox span {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .table-wrapper {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: linear-gradient(135deg, #5F735F 0%, #4a5c4a 100%);
+      color: white;
+    }
+
+    thead th {
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: background-color 0.2s;
+    }
+
+    tbody tr:hover {
+      background-color: #e8ede8;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    tbody tr:nth-child(even):hover {
+      background-color: #e8ede8;
+    }
+
+    tbody td {
+      padding: 15px;
+      color: #333;
+    }
+
+    .captain-badge {
+      display: inline-block;
+      background: #7a8f7a;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
+    .no-drink-badge {
+      display: inline-block;
+      background: #f44336;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
+    .patch-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #7a8f7a;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+
+    .patch-icons {
+      display: flex;
+      gap: 2px;
+    }
+
+    .couple-info {
+      color: #5F735F;
+      font-size: 0.9rem;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+      font-size: 1.1rem;
+    }
+
+    .results-count {
+      text-align: center;
+      margin-top: 20px;
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .filters {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .filter-checkbox {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      table {
+        font-size: 0.8rem;
+        min-width: 600px;
+      }
+
+      thead th {
+        padding: 10px 8px;
+        font-size: 0.75rem;
+      }
+
+      tbody td {
+        padding: 10px 8px;
+      }
+
+      .captain-badge,
+      .no-drink-badge {
+        display: block;
+        margin: 5px 0;
+        width: fit-content;
+      }
+
+      .patch-badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+      }
+
+      .couple-info {
+        font-size: 0.8rem;
+        display: block;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+
+      .header h1 {
+        font-size: 1.5rem;
+      }
+
+      .header p {
+        font-size: 0.9rem;
+      }
+
+      .search-box input {
+        padding: 12px 15px;
+        font-size: 0.9rem;
+      }
+
+      table {
+        font-size: 0.75rem;
+        min-width: 500px;
+      }
+
+      thead th {
+        padding: 8px 5px;
+        font-size: 0.7rem;
+      }
+
+      tbody td {
+        padding: 8px 5px;
+      }
+
+      .results-count {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🎉 Lista de Invitados 🎉</h1>
+    <p id="totalGuests">Cargando...</p>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="🔍 Buscar por nombre...">
+  </div>
+
+  <div class="filters">
+    <label class="filter-checkbox">
+      <input type="checkbox" id="filterCaptains">
+      <span>🌟 Solo Capitanes</span>
+    </label>
+    <label class="filter-checkbox">
+      <input type="checkbox" id="filterPatches">
+      <span>🍺 Solo con Patches</span>
+    </label>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Mesa</th>
+        <th>Pareja</th>
+        <th>Patches</th>
+        <th>Notas</th>
+      </tr>
+      </thead>
+      <tbody id="guestTableBody">
+      </tbody>
+    </table>
+    <div id="noResults" class="no-results" style="display: none;">
+      No se encontraron invitados con ese nombre
+    </div>
+  </div>
+
+  <div class="results-count" id="resultsCount"></div>
+</div>
+
+<script>
+  var guests = [
+    {id:"1",fullName:"Milder Mendoza",tableNumber:"1",coupleId:1,patchCounter:2,noDrink:false,captain:false,notes:""},
+    {id:"2",fullName:"Hazel Salas",tableNumber:"1",coupleId:1,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"3",fullName:"Angélica Ortiz",tableNumber:"1",coupleId:2,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"4",fullName:"René Salas",tableNumber:"1",coupleId:2,patchCounter:2,noDrink:false,captain:false,notes:""},
+    {id:"5",fullName:"Yohana Salas",tableNumber:"1",coupleId:3,patchCounter:2,noDrink:false,captain:false,notes:""},
+    {id:"6",fullName:"Blanca Amador",tableNumber:"1",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"7",fullName:"Karen Salas",tableNumber:"1",coupleId:4,patchCounter:2,noDrink:false,captain:true,notes:""},
+    {id:"8",fullName:"Carlos Cruz",tableNumber:"1",coupleId:4,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"9",fullName:"Elvis Rostrán",tableNumber:"1",coupleId:3,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"10",fullName:"María René Rostran",tableNumber:"1",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"11",fullName:"Norman Ebanks",tableNumber:"2",coupleId:5,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"12",fullName:"Irlanda Delgado",tableNumber:"2",coupleId:5,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"13",fullName:"Victoria Ebanks",tableNumber:"2",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"14",fullName:"Ivania Delgado",tableNumber:"2",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"15",fullName:"Eddy Delgado",tableNumber:"2",coupleId:0,patchCounter:2,noDrink:false,captain:true,notes:""},
+    {id:"16",fullName:"Ivonne Delgado",tableNumber:"2",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"17",fullName:"Grethell Zelaya",tableNumber:"2",coupleId:6,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"18",fullName:"Grethell Ramírez",tableNumber:"2",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"19",fullName:"Marvin Zelaya",tableNumber:"2",coupleId:6,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"20",fullName:"Meyling Puerto",tableNumber:"2",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"21",fullName:"Antonio Salas",tableNumber:"3",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"22",fullName:"Jose René Salas",tableNumber:"3",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"23",fullName:"Jesús Eduardo Mendoza",tableNumber:"3",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"24",fullName:"Sebastián Mendoza",tableNumber:"3",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"25",fullName:"Moisés Mendoza",tableNumber:"3",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"26",fullName:"Huberth Fonseca",tableNumber:"3",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"27",fullName:"María Jesús Rostrán",tableNumber:"3",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"28",fullName:"Mariam Rostrán",tableNumber:"3",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"29",fullName:"Francisco Salas",tableNumber:"3",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"30",fullName:"Cristóbal Puerto",tableNumber:"4",coupleId:7,patchCounter:0,noDrink:false,captain:true,notes:""},
+    {id:"31",fullName:"Karina Mercado",tableNumber:"4",coupleId:7,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"32",fullName:"Isabella Puerto",tableNumber:"4",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"33",fullName:"Francela Navarro",tableNumber:"4",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"34",fullName:"Juan Cristóbal Puerto",tableNumber:"4",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"35",fullName:"Gerald Puerto",tableNumber:"4",coupleId:8,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"36",fullName:"Gaudy Bermúdez",tableNumber:"4",coupleId:8,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"37",fullName:"Kimberly Puerto",tableNumber:"4",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"38",fullName:"Maripaz Puerto",tableNumber:"4",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"39",fullName:"Tyrone Puerto",tableNumber:"4",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"40",fullName:"Nelson Salinas",tableNumber:"5",coupleId:9,patchCounter:1,noDrink:false,captain:false,notes:""},
+    {id:"41",fullName:"Yohelna Rostrán",tableNumber:"5",coupleId:9,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"42",fullName:"Carlos Téllez",tableNumber:"5",coupleId:0,patchCounter:1,noDrink:false,captain:false,notes:""},
+    {id:"43",fullName:"Cristhy Lumbí",tableNumber:"5",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"44",fullName:"Blanca Rostrán",tableNumber:"5",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"45",fullName:"Karen Lumbí",tableNumber:"5",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"46",fullName:"Tiffany Salas",tableNumber:"5",coupleId:10,patchCounter:2,noDrink:false,captain:false,notes:""},
+    {id:"47",fullName:"Pedro Tapia",tableNumber:"5",coupleId:10,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"48",fullName:"Norlan Fonseca",tableNumber:"5",coupleId:11,patchCounter:2,noDrink:false,captain:true,notes:""},
+    {id:"49",fullName:"Eveling González",tableNumber:"5",coupleId:11,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"50",fullName:"Gustavo Medrano",tableNumber:"6",coupleId:12,patchCounter:2,noDrink:true,captain:true,notes:""},
+    {id:"51",fullName:"Ibrahina Blandón",tableNumber:"6",coupleId:12,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"52",fullName:"Francisco Arróliga",tableNumber:"6",coupleId:13,patchCounter:2,noDrink:false,captain:false,notes:""},
+    {id:"53",fullName:"Roxana Marquez",tableNumber:"6",coupleId:13,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"54",fullName:"Jean Carlos Bonilla",tableNumber:"6",coupleId:14,patchCounter:2,noDrink:false,captain:false,notes:""},
+    {id:"55",fullName:"Eyling Ocón",tableNumber:"6",coupleId:14,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"56",fullName:"Yadiel Antonio Lumbí",tableNumber:"6",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"57",fullName:"Jennifer Navas",tableNumber:"7",coupleId:15,patchCounter:2,noDrink:false,captain:true,notes:""},
+    {id:"58",fullName:"Oscar Moradel",tableNumber:"7",coupleId:15,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"59",fullName:"Rosalba Fernández",tableNumber:"7",coupleId:16,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"60",fullName:"Winther Navarrete",tableNumber:"7",coupleId:16,patchCounter:2,noDrink:false,captain:false,notes:""},
+    {id:"61",fullName:"Julio Lazo",tableNumber:"7",coupleId:0,patchCounter:1,noDrink:false,captain:false,notes:""},
+    {id:"62",fullName:"Gabriel Sánchez",tableNumber:"7",coupleId:17,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"63",fullName:"Jorge Briones",tableNumber:"7",coupleId:17,patchCounter:2,noDrink:false,captain:false,notes:""},
+    {id:"64",fullName:"José Castañeda",tableNumber:"7",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"65",fullName:"Yoseling Cáceres",tableNumber:"7",coupleId:18,patchCounter:2,noDrink:false,captain:false,notes:""},
+    {id:"66",fullName:"Rodrigo Lovo",tableNumber:"7",coupleId:18,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"67",fullName:"Karla Puerto",tableNumber:"8",coupleId:19,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"68",fullName:"Silvio Mendieta",tableNumber:"8",coupleId:19,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"69",fullName:"Kevin Mendieta",tableNumber:"8",coupleId:20,patchCounter:2,noDrink:false,captain:true,notes:""},
+    {id:"70",fullName:"Yazohara Lindo",tableNumber:"8",coupleId:20,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"71",fullName:"Marvin Puerto",tableNumber:"8",coupleId:21,patchCounter:2,noDrink:false,captain:false,notes:""},
+    {id:"72",fullName:"Katherine Mora",tableNumber:"8",coupleId:21,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"73",fullName:"Cristhian Puerto",tableNumber:"8",coupleId:0,patchCounter:1,noDrink:false,captain:false,notes:""},
+    {id:"74",fullName:"Ervin Puerto",tableNumber:"8",coupleId:0,patchCounter:1,noDrink:false,captain:false,notes:""},
+    {id:"75",fullName:"Danilo Espinoza",tableNumber:"8",coupleId:22,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"76",fullName:"Socorro Narváez",tableNumber:"8",coupleId:22,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"77",fullName:"Geolffrey Mena",tableNumber:"9",coupleId:23,patchCounter:0,noDrink:true,captain:false,notes:""},
+    {id:"78",fullName:"Florinda Téllez",tableNumber:"9",coupleId:23,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"79",fullName:"Lumara Aleman",tableNumber:"9",coupleId:24,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"80",fullName:"Ronnie Rios",tableNumber:"9",coupleId:24,patchCounter:2,noDrink:false,captain:false,notes:""},
+    {id:"81",fullName:"Roberto Morales",tableNumber:"9",coupleId:25,patchCounter:2,noDrink:false,captain:false,notes:""},
+    {id:"82",fullName:"Daneska Solórzano",tableNumber:"9",coupleId:25,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"83",fullName:"Roberto Lacayo",tableNumber:"9",coupleId:26,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"84",fullName:"Carolina Matus",tableNumber:"9",coupleId:26,patchCounter:2,noDrink:false,captain:true,notes:""},
+    {id:"85",fullName:"Evertsz Vega",tableNumber:"9",coupleId:27,patchCounter:2,noDrink:false,captain:true,notes:""},
+    {id:"86",fullName:"Kenia Delgadillo",tableNumber:"9",coupleId:27,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"87",fullName:"Efrén Mogollón",tableNumber:"10",coupleId:28,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"88",fullName:"Fernanda Pérez",tableNumber:"10",coupleId:28,patchCounter:2,noDrink:false,captain:false,notes:""},
+    {id:"89",fullName:"Manuel Pérez",tableNumber:"10",coupleId:29,patchCounter:2,noDrink:false,captain:true,notes:""},
+    {id:"90",fullName:"Irene Aragón",tableNumber:"10",coupleId:29,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"91",fullName:"Orlando Acevedo",tableNumber:"10",coupleId:30,patchCounter:2,noDrink:false,captain:true,notes:""},
+    {id:"92",fullName:"Diana Escobar",tableNumber:"10",coupleId:30,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"93",fullName:"Jhoseline Burgos",tableNumber:"10",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"94",fullName:"Warrent Talavera",tableNumber:"10",coupleId:0,patchCounter:1,noDrink:false,captain:false,notes:""},
+    {id:"95",fullName:"Roberto Forbes",tableNumber:"10",coupleId:31,patchCounter:2,noDrink:false,captain:false,notes:""},
+    {id:"96",fullName:"Jessica Arróliga",tableNumber:"10",coupleId:31,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"97",fullName:"José Delgado",tableNumber:"Imperial",coupleId:32,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"98",fullName:"Joseline Fonseca",tableNumber:"Imperial",coupleId:32,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"99",fullName:"Carlos Fonseca",tableNumber:"Imperial",coupleId:33,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"100",fullName:"Judith Salas",tableNumber:"Imperial",coupleId:33,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"101",fullName:"Nidia Álvarez",tableNumber:"Imperial",coupleId:34,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"102",fullName:"Evenor Delgado",tableNumber:"Imperial",coupleId:34,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"103",fullName:"Mildred Delgado",tableNumber:"Imperial",coupleId:35,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"104",fullName:"Camilo Gutiérrez",tableNumber:"Imperial",coupleId:35,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"105",fullName:"Verónica Fonseca",tableNumber:"Imperial",coupleId:36,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"106",fullName:"Jonathan Villatoro",tableNumber:"Imperial",coupleId:36,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"107",fullName:"Blanca Fonseca",tableNumber:"Imperial",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"108",fullName:"Génesis Obando",tableNumber:"Imperial",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""},
+    {id:"109",fullName:"Petrona Ruíz García",tableNumber:"1",coupleId:0,patchCounter:0,noDrink:false,captain:false,notes:""}
+  ];
+
+  var filteredGuests = guests;
+
+  function getPartnerName(coupleId, currentGuestId) {
+    if (coupleId === 0) return null;
+    var partner = null;
+    for (var i = 0; i < guests.length; i++) {
+      if (guests[i].coupleId === coupleId && guests[i].id !== currentGuestId) {
+        partner = guests[i];
+        break;
+      }
+    }
+    return partner ? partner.fullName : null;
+  }
+
+  function renderTable(guestsToRender) {
+    var tbody = document.getElementById('guestTableBody');
+    var noResults = document.getElementById('noResults');
+
+    if (guestsToRender.length === 0) {
+      tbody.innerHTML = '';
+      noResults.style.display = 'block';
+      return;
+    }
+
+    noResults.style.display = 'none';
+
+    var html = '';
+    for (var i = 0; i < guestsToRender.length; i++) {
+      var guest = guestsToRender[i];
+      var partnerName = getPartnerName(guest.coupleId, guest.id);
+
+      var badges = '';
+      if (guest.captain) {
+        badges += '<span class="captain-badge">⭐ CAPITÁN</span>';
+      }
+      if (guest.noDrink) {
+        badges += '<span class="no-drink-badge">🚫 NO ALCOHOL</span>';
+      }
+
+      var coupleHtml = partnerName ? '<span class="couple-info">❤️ ' + partnerName + '</span>' : '<span style="color: #999;">Sin pareja</span>';
+
+      var patchHtml = '';
+      if (guest.patchCounter > 0) {
+        var drinkIcons = '';
+        for (var j = 0; j < guest.patchCounter; j++) {
+          drinkIcons += '🍺';
+        }
+        patchHtml = '<span class="patch-badge"><span class="patch-icons">' + drinkIcons + '</span> ' + guest.patchCounter + '</span>';
+      } else {
+        patchHtml = '<span style="color: #999;">-</span>';
+      }
+
+      html += '<tr>';
+      html += '<td>' + guest.fullName + ' ' + badges + '</td>';
+      html += '<td>Mesa ' + guest.tableNumber + '</td>';
+      html += '<td>' + coupleHtml + '</td>';
+      html += '<td>' + patchHtml + '</td>';
+      html += '<td>' + (guest.notes || '-') + '</td>';
+      html += '</tr>';
+    }
+    tbody.innerHTML = html;
+  }
+
+  function filterGuests() {
+    var searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    var filterCaptains = document.getElementById('filterCaptains').checked;
+    var filterPatches = document.getElementById('filterPatches').checked;
+
+    if (searchTerm === '' && !filterCaptains && !filterPatches) {
+      filteredGuests = guests;
+    } else {
+      filteredGuests = [];
+      for (var i = 0; i < guests.length; i++) {
+        var matchesSearch = searchTerm === '' || guests[i].fullName.toLowerCase().indexOf(searchTerm) !== -1;
+        var matchesCaptain = !filterCaptains || guests[i].captain === true;
+        var matchesPatches = !filterPatches || guests[i].patchCounter > 0;
+
+        if (matchesSearch && matchesCaptain && matchesPatches) {
+          filteredGuests.push(guests[i]);
+        }
+      }
+    }
+
+    renderTable(filteredGuests);
+    updateCounts();
+  }
+
+  function updateCounts() {
+    document.getElementById('totalGuests').textContent = 'Total de invitados: ' + guests.length;
+    document.getElementById('resultsCount').textContent = 'Mostrando ' + filteredGuests.length + ' de ' + guests.length + ' invitados';
+  }
+
+  document.getElementById('searchInput').addEventListener('input', filterGuests);
+  document.getElementById('filterCaptains').addEventListener('change', filterGuests);
+  document.getElementById('filterPatches').addEventListener('change', filterGuests);
+
+  renderTable(guests);
+  updateCounts();
+</script>
+</body>
+</html>

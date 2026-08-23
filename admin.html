@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="es" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin - Estado de Confirmaciones</title>
+    <script src="cache-bust.js"></script>
+    <link rel="stylesheet" href="admin.css" id="css-admin">
+    <style>
+        /* CSS crítico para evitar FOUC */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667865 0%, #8b9d8a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Loading Animation */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667865 0%, #8b9d8a 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-container {
+            text-align: center;
+            color: white;
+        }
+
+        .loading-hearts {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .loading-heart {
+            width: 20px;
+            height: 20px;
+            background: #a8b5a7;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            margin: 0 5px;
+            animation: heartBeat 1.5s ease-in-out infinite;
+        }
+
+        .loading-heart:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-heart:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes heartBeat {
+            0%, 100% {
+                transform: rotate(-45deg) scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: rotate(-45deg) scale(1.3);
+                opacity: 0.7;
+            }
+        }
+
+        .loading-text {
+            font-size: 1.5em;
+            font-style: italic;
+            color: white;
+            margin-bottom: 20px;
+            font-family: 'Great Vibes', cursive;
+            animation: fadeInOut 2s ease-in-out infinite;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .loading-progress {
+            width: 200px;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .loading-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, white, rgba(255,255,255,0.8));
+            border-radius: 2px;
+            animation: progress 3s ease-in-out infinite;
+        }
+
+        @keyframes progress {
+            0% {
+                width: 0%;
+                transform: translateX(-100%);
+            }
+            50% {
+                width: 70%;
+                transform: translateX(0%);
+            }
+            100% {
+                width: 100%;
+                transform: translateX(0%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-container">
+            <div class="loading-hearts">
+                <div class="loading-heart"></div>
+                <div class="loading-heart"></div>
+                <div class="loading-heart"></div>
+            </div>
+            <div class="loading-text">Cargando panel de administración...</div>
+            <div class="loading-spinner"></div>
+            <div class="loading-progress">
+                <div class="loading-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>Estado de Confirmaciones</h1>
+                    <p>Panel de administración - Invitaciones de boda</p>
+                </div>
+                <button class="add-guest-btn" id="addGuestBtn" title="Agregar invitado">
+                    <span class="add-icon">+</span>
+                    Agregar Invitado
+                </button>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stats-grid" id="statsGrid">
+                <!-- Las estadísticas se cargarán dinámicamente -->
+            </div>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Buscar por código o nombre..." />
+                <div class="search-icon">🔍</div>
+                <button id="clearSearch" class="clear-btn" style="display: none;">✕</button>
+            </div>
+            <div class="search-results" id="searchResults">
+                <!-- Los resultados de búsqueda se mostrarán aquí -->
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div id="loadingContainer" class="loading-container">
+                <div class="spinner"></div>
+                <div class="loading-text">Cargando datos de invitados...</div>
+                <div class="loading-subtext">Por favor espera mientras obtenemos la información</div>
+            </div>
+
+            <div id="errorContainer" class="error-container" style="display: none;">
+                <div class="error-icon">⚠️</div>
+                <div class="error-text">Error al cargar los datos</div>
+                <div class="error-subtext">No se pudieron obtener los datos de los invitados. Verifica la conexión e intenta nuevamente.</div>
+                <button class="retry-btn" onclick="loadGuestsData()">Reintentar</button>
+            </div>
+
+            <div id="guestsContainer" style="display: none;">
+                <!-- Los grupos se cargarán dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de la API
+        const API_BASE_URL = 'https://msgroomer.com/api';
+        const API_KEY = 'nacho123';
+
+        // Estado de la aplicación
+        let guestsData = [];
+        let groupedGuests = {};
+
+        // Función para cargar datos de invitados
+        async function loadGuestsData() {
+            const loadingContainer = document.getElementById('loadingContainer');
+            const errorContainer = document.getElementById('errorContainer');
+            const guestsContainer = document.getElementById('guestsContainer');
+
+            // Mostrar spinner
+            loadingContainer.style.display = 'flex';
+            errorContainer.style.display = 'none';
+            guestsContainer.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/guests`, {
+                    method: 'GET',
+                    headers: {
+                        'X-API-KEY': API_KEY,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Clave de API incorrecta');
+                    }
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                guestsData = await response.json() || [];
+                
+                // Procesar y mostrar datos
+                processGuestsData();
+                displayStats();
+                displayGuestsData();
+
+                // Ocultar spinner y mostrar datos
+                loadingContainer.style.display = 'none';
+                guestsContainer.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
+                
+                // Mostrar error
+                loadingContainer.style.display = 'none';
+                errorContainer.style.display = 'flex';
+                
+                // Actualizar mensaje de error
+                const errorText = document.querySelector('.error-text');
+                errorText.textContent = error.message;
+            }
+        }
+
+        // Función para procesar los datos de invitados
+        function processGuestsData() {
+            groupedGuests = {};
+
+            guestsData.forEach(guest => {
+                const groupCode = guest.codigo;
+                
+                if (!groupedGuests[groupCode]) {
+                    groupedGuests[groupCode] = {
+                        guests: [],
+                        principal: null,
+                        total: 0,
+                        confirmed: 0
+                    };
+                }
+
+                groupedGuests[groupCode].guests.push(guest);
+                groupedGuests[groupCode].total++;
+
+                if (guest.confirmado) {
+                    groupedGuests[groupCode].confirmed++;
+                }
+
+                if (guest.principal) {
+                    groupedGuests[groupCode].principal = guest;
+                }
+            });
+        }
+
+        // Función para mostrar estadísticas generales
+        function displayStats() {
+            const statsGrid = document.getElementById('statsGrid');
+            
+            const totalGroups = Object.keys(groupedGuests).length;
+            const totalGuests = guestsData.length;
+            const totalConfirmed = guestsData.filter(g => g.confirmado).length;
+            const totalPending = totalGuests - totalConfirmed;
+            const totalVisited = guestsData.filter(g => g.visited).length;
+
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${totalGroups}</div>
+                    <div class="stat-label">Grupos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalGuests}</div>
+                    <div class="stat-label">Total Invitados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalConfirmed}</div>
+                    <div class="stat-label">Confirmados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalPending}</div>
+                    <div class="stat-label">Pendientes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalVisited}</div>
+                    <div class="stat-label">Han Visitado</div>
+                </div>
+            `;
+        }
+
+        // Función para mostrar los datos de invitados
+        function displayGuestsData() {
+            const guestsContainer = document.getElementById('guestsContainer');
+            
+            let html = '';
+
+            Object.keys(groupedGuests).forEach(groupCode => {
+                const group = groupedGuests[groupCode];
+                const principalName = group.principal ? group.principal.nombre : 'Sin principal';
+                const groupTitle = `${principalName} - ${groupCode} (${group.confirmed}/${group.total})`;
+
+                html += `
+                    <div class="group-item">
+                        <div class="group-header" onclick="toggleGroup('${groupCode}')">
+                            <div class="group-title-container">
+                                <div class="group-title">${groupTitle}</div>
+                                <button class="copy-url-btn" onclick="event.stopPropagation(); copyGroupUrl('${groupCode}')" title="Copiar mensaje de WhatsApp">
+                                    📱
+                                </button>
+                            </div>
+                            <div class="group-stats">${group.confirmed}/${group.total} confirmados</div>
+                            <div class="group-toggle" id="toggle-${groupCode}">▼</div>
+                        </div>
+                        <div class="group-content" id="content-${groupCode}">
+                            <div class="guests-table-wrapper">
+                                <table class="guests-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Estado</th>
+                                        <th>Principal</th>
+                                        <th>Visitado</th>
+                                        <th>Veces Visitado</th>
+                                        <th>Última Visita</th>
+                                        <th>Fecha Confirmación</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${group.guests.map(guest => `
+                                        <tr>
+                                            <td>${guest.nombre}</td>
+                                            <td>
+                                                <span class="status-badge ${guest.confirmado ? 'status-confirmed' : 'status-pending'}">
+                                                    ${guest.confirmado ? 'Confirmado' : 'Pendiente'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                ${guest.principal ? 
+                                                    '<span class="status-badge status-principal">Principal</span>' : 
+                                                    '-'
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="status-badge ${guest.visited ? 'status-confirmed' : 'status-pending'}">
+                                                    ${guest.visited ? 'Sí' : 'No'}
+                                                </span>
+                                            </td>
+                                            <td>${guest.visited_count || 0}</td>
+                                            <td>${guest.last_visited_at ? new Date(guest.last_visited_at).toLocaleDateString('es-ES') : '-'}</td>
+                                            <td>${guest.confirmed_at ? new Date(guest.confirmed_at).toLocaleDateString('es-ES') : '-'}</td>
+                                            <td class="actions-cell">
+                                                <button class="action-btn edit-btn" onclick="editExistingGuest('${guest._id}', '${guest.nombre}', ${guest.principal})" title="Editar invitado">
+                                                    ✏️
+                                                </button>
+                                                <button class="action-btn delete-btn" onclick="deleteGuest('${guest._id}')" title="Eliminar invitado">
+                                                    🗑️
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            guestsContainer.innerHTML = html;
+        }
+
+        // Función para buscar invitados por código o nombre
+        function searchGuests(searchTerm) {
+            if (!searchTerm || searchTerm.trim() === '') {
+                // Mostrar todos los grupos si no hay término de búsqueda
+                displayGuestsData();
+                document.getElementById('searchResults').classList.add('hidden');
+                return;
+            }
+
+            const filteredGroups = {};
+            const searchLower = searchTerm.toLowerCase().trim();
+            let totalMatches = 0;
+
+            // Filtrar grupos que contengan el término de búsqueda
+            Object.keys(groupedGuests).forEach(groupCode => {
+                const group = groupedGuests[groupCode];
+                const principalName = group.principal ? group.principal.nombre.toLowerCase() : '';
+                
+                // Buscar en código del grupo o nombre del principal
+                if (groupCode.toLowerCase().includes(searchLower) || 
+                    principalName.includes(searchLower)) {
+                    filteredGroups[groupCode] = group;
+                    totalMatches += group.guests.length;
+                } else {
+                    // Buscar en nombres de invitados individuales
+                    const matchingGuests = group.guests.filter(guest => 
+                        guest.nombre.toLowerCase().includes(searchLower)
+                    );
+                    
+                    if (matchingGuests.length > 0) {
+                        filteredGroups[groupCode] = {
+                            ...group,
+                            guests: matchingGuests
+                        };
+                        totalMatches += matchingGuests.length;
+                    }
+                }
+            });
+
+            // Mostrar resultados filtrados
+            displayFilteredGuests(filteredGroups);
+            
+            // Mostrar información de búsqueda
+            const searchResults = document.getElementById('searchResults');
+            if (Object.keys(filteredGroups).length === 0) {
+                searchResults.innerHTML = `No se encontraron resultados para "${searchTerm}"`;
+                searchResults.classList.remove('hidden');
+            } else {
+                searchResults.innerHTML = `Mostrando ${totalMatches} resultado(s) para "${searchTerm}"`;
+                searchResults.classList.remove('hidden');
+            }
+        }
+
+        // Función para mostrar invitados filtrados
+        function displayFilteredGuests(filteredGroups) {
+            const guestsContainer = document.getElementById('guestsContainer');
+            
+            let html = '';
+
+            Object.keys(filteredGroups).forEach(groupCode => {
+                const group = filteredGroups[groupCode];
+                const principalName = group.principal ? group.principal.nombre : 'Sin principal';
+                const groupTitle = `${principalName} - ${groupCode} (${group.confirmed}/${group.total})`;
+
+                html += `
+                    <div class="group-item">
+                        <div class="group-header" onclick="toggleGroup('${groupCode}')">
+                            <div class="group-title-container">
+                                <div class="group-title">${groupTitle}</div>
+                                <button class="copy-url-btn" onclick="event.stopPropagation(); copyGroupUrl('${groupCode}')" title="Copiar mensaje de WhatsApp">
+                                    📱
+                                </button>
+                            </div>
+                            <div class="group-stats">${group.confirmed}/${group.total} confirmados</div>
+                            <div class="group-toggle" id="toggle-${groupCode}">▼</div>
+                        </div>
+                        <div class="group-content" id="content-${groupCode}">
+                            <div class="guests-table-wrapper">
+                                <table class="guests-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Estado</th>
+                                        <th>Principal</th>
+                                        <th>Visitado</th>
+                                        <th>Veces Visitado</th>
+                                        <th>Última Visita</th>
+                                        <th>Fecha Confirmación</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${group.guests.map(guest => `
+                                        <tr>
+                                            <td>${guest.nombre}</td>
+                                            <td>
+                                                <span class="status-badge ${guest.confirmado ? 'status-confirmed' : 'status-pending'}">
+                                                    ${guest.confirmado ? 'Confirmado' : 'Pendiente'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                ${guest.principal ? 
+                                                    '<span class="status-badge status-principal">Principal</span>' : 
+                                                    '-'
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="status-badge ${guest.visited ? 'status-confirmed' : 'status-pending'}">
+                                                    ${guest.visited ? 'Sí' : 'No'}
+                                                </span>
+                                            </td>
+                                            <td>${guest.visited_count || 0}</td>
+                                            <td>${guest.last_visited_at ? new Date(guest.last_visited_at).toLocaleDateString('es-ES') : '-'}</td>
+                                            <td>${guest.confirmed_at ? new Date(guest.confirmed_at).toLocaleDateString('es-ES') : '-'}</td>
+                                            <td class="actions-cell">
+                                                <button class="action-btn edit-btn" onclick="editExistingGuest('${guest._id}', '${guest.nombre}', ${guest.principal})" title="Editar invitado">
+                                                    ✏️
+                                                </button>
+                                                <button class="action-btn delete-btn" onclick="deleteGuest('${guest._id}')" title="Eliminar invitado">
+                                                    🗑️
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            guestsContainer.innerHTML = html;
+        }
+
+        // Función para alternar la visibilidad de un grupo
+        function toggleGroup(groupCode) {
+            const content = document.getElementById(`content-${groupCode}`);
+            const toggle = document.getElementById(`toggle-${groupCode}`);
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                toggle.classList.add('collapsed');
+            } else {
+                content.classList.add('expanded');
+                toggle.classList.remove('collapsed');
+            }
+        }
+
+        // Función para expandir/colapsar todos los grupos
+        function toggleAllGroups(expand) {
+            Object.keys(groupedGuests).forEach(groupCode => {
+                const content = document.getElementById(`content-${groupCode}`);
+                const toggle = document.getElementById(`toggle-${groupCode}`);
+                
+                if (expand) {
+                    content.classList.add('expanded');
+                    toggle.classList.remove('collapsed');
+                } else {
+                    content.classList.remove('expanded');
+                    toggle.classList.add('collapsed');
+                }
+            });
+        }
+
+        // Cargar datos al inicializar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGuestsData();
+            
+            // Configurar funcionalidad de búsqueda
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearch');
+            
+            // Búsqueda en tiempo real
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value;
+                
+                if (searchTerm.trim() === '') {
+                    clearBtn.style.display = 'none';
+                    document.getElementById('searchResults').classList.add('hidden');
+                } else {
+                    clearBtn.style.display = 'flex';
+                }
+                
+                // Debounce para evitar búsquedas excesivas
+                clearTimeout(this.searchTimeout);
+                this.searchTimeout = setTimeout(() => {
+                    searchGuests(searchTerm);
+                }, 300);
+            });
+            
+            // Botón de limpiar búsqueda
+            clearBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                this.style.display = 'none';
+                document.getElementById('searchResults').classList.add('hidden');
+                displayGuestsData(); // Mostrar todos los grupos
+            });
+            
+            // Búsqueda al presionar Enter
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchGuests(this.value);
+                }
+            });
+
+            // Funcionalidad del modal de agregar invitados
+            const addGuestBtn = document.getElementById('addGuestBtn');
+            const addGuestModal = document.getElementById('addGuestModal');
+            const closeModal = document.getElementById('closeModal');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const singleGuestForm = document.getElementById('singleGuestForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const guestsList = document.getElementById('guestsList');
+            const guestCountSpan = document.getElementById('guestCount');
+            const emptyState = document.getElementById('emptyState');
+
+            let guestsToCreate = [];
+            let nextGuestId = 1;
+
+            // Abrir modal
+            addGuestBtn.addEventListener('click', function() {
+                addGuestModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+
+            // Cerrar modal
+            function closeModalFunc() {
+                addGuestModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+                resetForm();
+            }
+
+            closeModal.addEventListener('click', closeModalFunc);
+            cancelBtn.addEventListener('click', closeModalFunc);
+
+            // Cerrar modal al hacer clic fuera
+            addGuestModal.addEventListener('click', function(e) {
+                if (e.target === addGuestModal) {
+                    closeModalFunc();
+                }
+            });
+
+            // Agregar invitado a la lista
+            singleGuestForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('newName').value.trim();
+                const groupCode = document.getElementById('newGroupCode').value.trim();
+                const principal = document.getElementById('newPrincipal').checked;
+                
+                if (name && groupCode) {
+                    // Generar ID basado en el código y el conteo de invitados existentes en la base de datos
+                    const existingGuestsWithSameCode = guestsData.filter(g => g.codigo === groupCode);
+                    const idSuffix = existingGuestsWithSameCode.length + 1;
+                    const generatedId = `${groupCode}_${idSuffix}`;
+                    
+                    const guest = {
+                        id: nextGuestId++,
+                        nombre: name,
+                        codigo: groupCode,
+                        principal: principal,
+                        generatedId: generatedId
+                    };
+                    
+                    guestsToCreate.push(guest);
+                    updateGuestsList();
+                    singleGuestForm.reset();
+                    updateSubmitButton();
+                }
+            });
+
+            // Regenerar IDs para mantener secuencia correcta
+            function regenerateIds() {
+                // Agrupar invitados por código
+                const guestsByCode = {};
+                guestsToCreate.forEach(guest => {
+                    if (!guestsByCode[guest.codigo]) {
+                        guestsByCode[guest.codigo] = [];
+                    }
+                    guestsByCode[guest.codigo].push(guest);
+                });
+                
+                // Regenerar IDs para cada grupo de código
+                Object.keys(guestsByCode).forEach(codigo => {
+                    // Contar invitados existentes en la base de datos con este código
+                    const existingGuestsCount = guestsData.filter(g => g.codigo === codigo).length;
+                    
+                    guestsByCode[codigo].forEach((guest, index) => {
+                        guest.generatedId = `${codigo}_${existingGuestsCount + index + 1}`;
+                    });
+                });
+            }
+
+            // Actualizar la lista visual de invitados
+            function updateGuestsList() {
+                guestCountSpan.textContent = guestsToCreate.length;
+                
+                if (guestsToCreate.length === 0) {
+                    emptyState.style.display = 'block';
+                    guestsList.innerHTML = '<div class="empty-state" id="emptyState"><p>No hay invitados agregados aún</p></div>';
+                    return;
+                }
+                
+                // Regenerar IDs para mantener secuencia correcta
+                regenerateIds();
+                
+                emptyState.style.display = 'none';
+                
+                guestsList.innerHTML = guestsToCreate.map(guest => `
+                    <div class="guest-list-item" data-guest-id="${guest.id}">
+                        <div class="guest-info">
+                            <div class="guest-name">${guest.nombre}</div>
+                            <div class="guest-details">
+                                <span>Código: ${guest.codigo}</span>
+                                ${guest.principal ? '<span class="principal-badge">Principal</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="guest-actions">
+                            <button class="edit-guest-btn" onclick="editGuest(${guest.id})">Editar</button>
+                            <button class="remove-guest-btn" onclick="removeGuestFromList(${guest.id})">Eliminar</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Editar invitado
+            window.editGuest = function(guestId) {
+                const guest = guestsToCreate.find(g => g.id === guestId);
+                if (guest) {
+                    document.getElementById('newName').value = guest.nombre;
+                    document.getElementById('newGroupCode').value = guest.codigo;
+                    document.getElementById('newPrincipal').checked = guest.principal;
+                    
+                    // Remover de la lista
+                    removeGuestFromList(guestId);
+                }
+            };
+
+            // Eliminar invitado de la lista
+            window.removeGuestFromList = function(guestId) {
+                guestsToCreate = guestsToCreate.filter(g => g.id !== guestId);
+                updateGuestsList();
+                updateSubmitButton();
+            };
+
+            // Actualizar estado del botón de envío
+            function updateSubmitButton() {
+                submitBtn.disabled = guestsToCreate.length === 0;
+            }
+
+            // Función para resetear el formulario
+            function resetForm() {
+                guestsToCreate = [];
+                nextGuestId = 1;
+                singleGuestForm.reset();
+                updateGuestsList();
+                updateSubmitButton();
+            }
+
+            // Crear todos los invitados
+            submitBtn.addEventListener('click', async function() {
+                if (guestsToCreate.length === 0) return;
+                
+                // Deshabilitar botón de envío
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creando...';
+                
+                try {
+                    // Crear peticiones para cada invitado
+                    const apiKey = document.getElementById('apiKey').value;
+                    const requests = guestsToCreate.map(guest => {
+                        return fetch(`${API_BASE_URL}/guests/manage`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-API-KEY': 'nacho123',
+                            },
+                            body: JSON.stringify({
+                                apiKey: apiKey,
+                                action: 'CREATE',
+                                data: {
+                                    nombre: guest.nombre,
+                                    codigo: guest.codigo,
+                                    id: guest.generatedId,
+                                    principal: guest.principal
+                                }
+                            })
+                        });
+                    });
+                    
+                    // Ejecutar todas las peticiones con Promise.all
+                    const responses = await Promise.all(requests);
+                    
+                    // Verificar si todas las respuestas son exitosas
+                    const allSuccessful = responses.every(response => response.ok);
+                    
+                    if (allSuccessful) {
+                        alert(`¡Éxito! Se crearon ${guestsToCreate.length} invitado(s) correctamente.`);
+                        closeModalFunc();
+                        // Recargar los datos
+                        loadGuestsData();
+                    } else {
+                        const errorResponses = responses.filter(response => !response.ok);
+                        console.error('Algunas peticiones fallaron:', errorResponses);
+                        alert('Hubo un error al crear algunos invitados. Por favor, inténtalo de nuevo.');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error al crear invitados:', error);
+                    alert('Error al crear invitados. Por favor, inténtalo de nuevo.');
+                } finally {
+                    // Rehabilitar botón de envío
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Crear Invitados';
+                }
+            });
+
+            // Funcionalidad del modal de editar invitado existente
+            const editGuestModal = document.getElementById('editGuestModal');
+            const closeEditModal = document.getElementById('closeEditModal');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            const editGuestForm = document.getElementById('editGuestForm');
+            const updateGuestBtn = document.getElementById('updateGuestBtn');
+
+            // Cerrar modal de edición
+            function closeEditModalFunc() {
+                editGuestModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+
+            closeEditModal.addEventListener('click', closeEditModalFunc);
+            cancelEditBtn.addEventListener('click', closeEditModalFunc);
+
+            // Cerrar modal al hacer clic fuera
+            editGuestModal.addEventListener('click', function(e) {
+                if (e.target === editGuestModal) {
+                    closeEditModalFunc();
+                }
+            });
+
+            // Función para editar invitado existente
+            window.editExistingGuest = function(guestId, guestName, isPrincipal) {
+                document.getElementById('editGuestId').value = guestId;
+                document.getElementById('editName').value = guestName;
+                document.getElementById('editPrincipal').checked = isPrincipal;
+                
+                editGuestModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            };
+
+            // Envío del formulario de edición
+            editGuestForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const guestId = document.getElementById('editGuestId').value;
+                const newName = document.getElementById('editName').value.trim();
+                const isPrincipal = document.getElementById('editPrincipal').checked;
+                const apiKey = document.getElementById('editApiKey').value;
+                
+                if (!newName) {
+                    alert('Por favor, ingresa un nombre válido.');
+                    return;
+                }
+                
+                // Deshabilitar botón de envío
+                updateGuestBtn.disabled = true;
+                updateGuestBtn.textContent = 'Actualizando...';
+                
+                try {                 
+                    const response = await fetch(`${API_BASE_URL}/guests/manage`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-KEY': 'nacho123',
+                        },
+                        body: JSON.stringify({
+                            apiKey: apiKey,
+                            action: 'UPDATE',
+                            data: {
+                                _id: guestId,
+                                nombre: newName,
+                                principal: isPrincipal
+                            }
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        alert('¡Invitado actualizado correctamente!');
+                        closeEditModalFunc();
+                        // Recargar los datos
+                        loadGuestsData();
+                    } else {
+                        console.error('Error al actualizar invitado:', response);
+                        alert('Error al actualizar el invitado. Por favor, inténtalo de nuevo.');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error al actualizar invitado:', error);
+                    alert('Error al actualizar el invitado. Por favor, inténtalo de nuevo.');
+                } finally {
+                    // Rehabilitar botón de envío
+                    updateGuestBtn.disabled = false;
+                    updateGuestBtn.textContent = 'Actualizar Invitado';
+                }
+            });
+
+            // Función para eliminar invitado
+            window.deleteGuest = function(guestId) {
+                if (confirm('¿Estás seguro de que quieres eliminar este invitado? Esta acción no se puede deshacer.')) {
+                    deleteGuestConfirm(guestId);
+                }
+            };
+
+            // Función para confirmar eliminación
+            async function deleteGuestConfirm(guestId) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/guests/manage`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-KEY': 'nacho123',
+                        },
+                        body: JSON.stringify({
+                            apiKey: 'nacho123',
+                            action: 'DELETE',
+                            data: {
+                                ids: [guestId]
+                            }
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        alert('¡Invitado eliminado correctamente!');
+                        // Recargar los datos
+                        loadGuestsData();
+                    } else {
+                        console.error('Error al eliminar invitado:', response);
+                        alert('Error al eliminar el invitado. Por favor, inténtalo de nuevo.');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error al eliminar invitado:', error);
+                    alert('Error al eliminar el invitado. Por favor, inténtalo de nuevo.');
+                }
+            }
+
+            // Función para copiar URL del grupo
+            window.copyGroupUrl = async function(groupCode) {
+                // Buscar el grupo para obtener la cantidad de personas
+                const group = groupedGuests[groupCode];
+                const totalPeople = group ? group.total : 0;
+                
+                const url = `https://tinyurl.com/boda-jose-y-joseline?code=${groupCode}`;
+                
+                const whatsappMessage = `✨💍 ¡Nos casamos! 💍✨
+
+Queremos compartir contigo la alegría de este momento tan especial en nuestras vidas.
+Será un honor para nosotros contar con tu presencia en nuestra boda 🤍
+
+En el siguiente enlace encontrarás todos los detalles de nuestra celebración:
+👉 ${url}
+
+🕊️ Esta invitación es válida para ${totalPeople} personas, las cuales podrás confirmar directamente en el enlace anterior.
+
+Agradeceríamos mucho que nos confirmes tu asistencia antes del 5 de noviembre, para poder organizar todo con cariño y cuidado.
+
+Con mucho amor,
+José Delgado & Joseline Fonseca 💫`;
+                
+                try {
+                    await navigator.clipboard.writeText(whatsappMessage);
+                    
+                    // Mostrar feedback visual
+                    const button = event.target;
+                    const originalText = button.textContent;
+                    button.textContent = '✅';
+                    button.style.background = '#4CAF50';
+                    button.style.color = 'white';
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.background = '';
+                        button.style.color = '';
+                    }, 2000);
+                    
+                } catch (err) {
+                    console.error('Error al copiar: ', err);
+                    
+                    // Fallback para navegadores que no soportan clipboard API
+                    const textArea = document.createElement('textarea');
+                    textArea.value = whatsappMessage;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    // Mostrar feedback
+                    alert(`Mensaje de WhatsApp copiado para el grupo ${groupCode}`);
+                }
+            };
+        });
+    </script>
+
+    <!-- Modal para editar invitado existente -->
+    <div class="modal-overlay" id="editGuestModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Invitado</h2>
+                <button class="modal-close" id="closeEditModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editGuestForm">
+                    <div class="form-group">
+                        <label for="editName">Nombre completo:</label>
+                        <input type="text" id="editName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPrincipal">
+                            <input type="checkbox" id="editPrincipal" name="principal">
+                            <span class="checkmark"></span>
+                            Invitado principal
+                        </label>
+                    </div>
+                    <input type="hidden" id="editGuestId">
+                    <input type="hidden" id="editApiKey" value="nacho123">
+                    
+                    <div class="modal-buttons">
+                        <button type="button" class="btn-cancel" id="cancelEditBtn">Cancelar</button>
+                        <button type="submit" class="btn-submit" id="updateGuestBtn">Actualizar Invitado</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar invitados -->
+    <div class="modal-overlay" id="addGuestModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Invitados</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Formulario para agregar un nuevo invitado -->
+                <div class="add-guest-form">
+                    <h3>Agregar Nuevo Invitado</h3>
+                    <form id="singleGuestForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="newName">Nombre completo:</label>
+                                <input type="text" id="newName" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newGroupCode">Código de grupo:</label>
+                                <input type="text" id="newGroupCode" name="groupCode" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="newPrincipal" name="principal">
+                                <span class="checkmark"></span>
+                                Invitado principal
+                            </label>
+                        </div>
+                        <button type="submit" class="add-to-list-btn">+ Agregar a la lista</button>
+                    </form>
+                </div>
+
+                <!-- Lista de invitados acumulados -->
+                <div class="guests-list-section">
+                    <h3>Invitados a Crear (<span id="guestCount">0</span>)</h3>
+                    <div class="guests-list" id="guestsList">
+                        <div class="empty-state" id="emptyState">
+                            <p>No hay invitados agregados aún</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- API Key oculto -->
+                <input type="hidden" id="apiKey" value="nacho123">
+                
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" id="cancelBtn">Cancelar</button>
+                    <button type="button" class="btn-submit" id="submitBtn" disabled>Crear Invitados</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

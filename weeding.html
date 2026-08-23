@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="es" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="google" content="notranslate">
+    <meta name="robots" content="noindex, nofollow">
+    <title>José y Joseline - Invitación de Boda</title>
+    <script src="cache-bust.js"></script>
+    <link rel="stylesheet" href="weeding.css" id="css-weeding">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <style>
+        /* CSS crítico para evitar FOUC */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #f5f3f0 0%, #e8e6e1 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .initial-screen {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease;
+        }
+
+        /* Loading Animation */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f5f3f0 0%, #e8e6e1 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-container {
+            text-align: center;
+            color: #546d53;
+        }
+
+        .loading-hearts {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .loading-heart {
+            width: 20px;
+            height: 20px;
+            background: #a8b5a7;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            margin: 0 5px;
+            animation: heartBeat 1.5s ease-in-out infinite;
+        }
+
+        .loading-heart:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-heart:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes heartBeat {
+            0%, 100% {
+                transform: rotate(-45deg) scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: rotate(-45deg) scale(1.3);
+            opacity: 0.7;
+            }
+        }
+
+        .loading-text {
+            font-size: 1.5em;
+            font-style: italic;
+            color: #546d53;
+            margin-bottom: 20px;
+            font-family: 'Great Vibes', cursive;
+            animation: fadeInOut 2s ease-in-out infinite;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e8f5e8;
+            border-top: 3px solid #546d53;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% {
+                opacity: 0.6;
+            }
+            50% {
+            opacity: 1;
+            }
+        }
+
+        .loading-progress {
+            width: 200px;
+            height: 4px;
+            background: #e8f5e8;
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .loading-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #546d53, #8b9d8a);
+            border-radius: 2px;
+            animation: progress 3s ease-in-out infinite;
+        }
+
+        @keyframes progress {
+            0% {
+                width: 0%;
+                transform: translateX(-100%);
+            }
+            50% {
+                width: 70%;
+                transform: translateX(0%);
+            }
+            100% {
+                width: 100%;
+                transform: translateX(0%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-container">
+            <div class="loading-hearts">
+                <div class="loading-heart"></div>
+                <div class="loading-heart"></div>
+                <div class="loading-heart"></div>
+            </div>
+            <div class="loading-text">Preparando tu invitación...</div>
+            <div class="loading-spinner"></div>
+            <div class="loading-progress">
+                <div class="loading-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="initial-screen" id="initialScreen">
+        <div class="container">
+            <div class="initial-message" id="initialMessage" translate="no">
+                El día más importante de nuestras vidas ha llegado.<br>
+                ¡NOS CASAMOS!
+            </div>
+
+            <div class="envelope-container" id="envelopeContainer">
+                <div class="envelope">
+                    <div class="envelope-body"></div>
+                    <div class="envelope-flap" id="envelopeFlap"></div>
+                    <div class="seal"></div>
+                    <div class="click-text" translate="no">Clic aquí<br>para abrir</div>
+                </div>
+
+                <div class="cards-container" id="cardsContainer">
+                    <div class="top-cards">
+                        <div class="card card-guest">
+                            <h3 translate="no">Pase reservado para:</h3>
+                            <div class="guest-count" id="guestCountDisplay" translate="no">2 personas</div>
+                        </div>
+
+                        <div class="card card-photo">
+                            <img src="wassets/media/photo1.jpg" alt="Foto de los novios">
+                        </div>
+                    </div>
+
+                    <div class="card card-details" id="detailsCard">
+                        <p translate="no">Clic aquí para:</p>
+                        <div class="details-link" translate="no">más detalles</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="names" translate="no">José  &nbsp; y  &nbsp; Joseline</div>
+        </div>
+    </div>
+
+    <div class="wedding-content" id="weddingContent">
+        <section class="hero-section">
+            <div class="floral-top-decoration hero-fade-in"></div>
+            <h2 class="hero-title hero-fade-in" translate="no">Nuestra Boda</h2>
+            <h1 class="hero-names hero-fade-in" translate="no">José &nbsp; y &nbsp; Joseline</h1>
+            <div class="hero-photo scale-in"></div>
+            
+            <!-- Indicador de scroll -->
+            <div class="scroll-indicator slide-up" onclick="scrollToNextSection()">
+                <div class="scroll-arrow"></div>
+            </div>
+        </section>
+
+        <section class="content-section fade-in-section">
+            <div class="message-section">
+                <svg class="floral-decoration left fade-in-left" viewBox="0 0 150 150">
+                    <circle cx="30" cy="30" r="15" fill="#a8b5a7" opacity="0.6"/>
+                    <circle cx="50" cy="50" r="18" fill="#9ab59a" opacity="0.6"/>
+                    <circle cx="25" cy="60" r="12" fill="#7a8b7a" opacity="0.6"/>
+                </svg>
+                <svg class="floral-decoration right fade-in-right" viewBox="0 0 150 150">
+                    <circle cx="120" cy="30" r="15" fill="#a8b5a7" opacity="0.6"/>
+                    <circle cx="100" cy="50" r="18" fill="#9ab59a" opacity="0.6"/>
+                    <circle cx="125" cy="60" r="12" fill="#7a8b7a" opacity="0.6"/>
+                </svg>
+
+                <p class="slide-up">
+                    Dios nos ha concedido el privilegio de conocernos y amarnos, y hoy con su bendición y la de nuestros padres queremos unir nuestras vidas para siempre.
+                </p>
+
+                <div class="parents-section stagger-animation">
+                    <div class="parents-box">
+                        <h3>Padres de la novia</h3>
+                        <p>
+                            Carlos Alberto Fonseca Espinoza<br>
+                            Judith Lucía Salas Amador
+                        </p>
+                    </div>
+                    <div class="parents-box">
+                        <h3>Padres del novio</h3>
+                        <p>
+                            José Evenor Delgado Cerda<br>
+                            Nidia Lissett Álvarez Espinoza
+                        </p>
+                    </div>
+                </div>
+
+                <p class="invitation-text">
+                    Les invitamos a acompañarnos en este día tan especial.
+                </p>
+            </div>
+        </section>
+
+        <section class="countdown-section fade-in-section">
+            <h2 class="slide-up">Faltan</h2>
+            <div class="countdown stagger-animation">
+                <div class="countdown-item">
+                    <div class="countdown-number" id="days">99</div>
+                    <div class="countdown-label">Días</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="hours">02</div>
+                    <div class="countdown-label">Horas</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="minutes">42</div>
+                    <div class="countdown-label">Min</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="seconds">59</div>
+                    <div class="countdown-label">Seg</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="calendar-section fade-in-section">
+            <svg class="floral-decoration-calendar floral-left fade-in-left" viewBox="0 0 120 120">
+                <circle cx="20" cy="20" r="8" fill="#a8b5a7" opacity="0.6"/>
+                <circle cx="40" cy="35" r="12" fill="#9ab59a" opacity="0.6"/>
+                <circle cx="15" cy="45" r="6" fill="#7a8b7a" opacity="0.6"/>
+                <circle cx="50" cy="25" r="10" fill="#6b7c6b" opacity="0.6"/>
+                <circle cx="30" cy="55" r="7" fill="#f8bbd9" opacity="0.6"/>
+                <path d="M10,60 Q30,50 50,65 Q70,80 90,70" stroke="#8b9d8a" stroke-width="2" fill="none" opacity="0.5"/>
+                <path d="M15,80 Q25,70 35,85 Q45,100 65,90" stroke="#8b9d8a" stroke-width="1.5" fill="none" opacity="0.4"/>
+            </svg>
+            
+            <svg class="floral-decoration-calendar floral-right" viewBox="0 0 100 100">
+                <circle cx="80" cy="20" r="8" fill="#a8b5a7" opacity="0.6"/>
+                <circle cx="60" cy="35" r="12" fill="#9ab59a" opacity="0.6"/>
+                <circle cx="85" cy="45" r="6" fill="#7a8b7a" opacity="0.6"/>
+                <circle cx="50" cy="25" r="10" fill="#6b7c6b" opacity="0.6"/>
+                <circle cx="70" cy="55" r="7" fill="#f8bbd9" opacity="0.6"/>
+                <path d="M90,60 Q70,50 50,65 Q30,80 10,70" stroke="#8b9d8a" stroke-width="2" fill="none" opacity="0.5"/>
+                <path d="M85,80 Q75,70 65,85 Q55,100 35,90" stroke="#8b9d8a" stroke-width="1.5" fill="none" opacity="0.4"/>
+            </svg>
+
+            <h2 class="slide-up">El gran día</h2>
+            <div class="calendar-month slide-up">NOVIEMBRE</div>
+            
+            <div class="calendar-container stagger-animation">
+                <div class="calendar-header">
+                    <div class="calendar-day-header">Dom</div>
+                    <div class="calendar-day-header">Lun</div>
+                    <div class="calendar-day-header">Mar</div>
+                    <div class="calendar-day-header">Mié</div>
+                    <div class="calendar-day-header">Jue</div>
+                    <div class="calendar-day-header">Vie</div>
+                    <div class="calendar-day-header">Sáb</div>
+                </div>
+                
+                <div class="calendar-grid">
+                    <div class="calendar-day other-month">26</div>
+                    <div class="calendar-day other-month">27</div>
+                    <div class="calendar-day other-month">28</div>
+                    <div class="calendar-day other-month">29</div>
+                    <div class="calendar-day other-month">30</div>
+                    <div class="calendar-day other-month">31</div>
+                    <div class="calendar-day">1</div>
+                    <div class="calendar-day">2</div>
+                    <div class="calendar-day">3</div>
+                    <div class="calendar-day">4</div>
+                    <div class="calendar-day">5</div>
+                    <div class="calendar-day">6</div>
+                    <div class="calendar-day">7</div>
+                    <div class="calendar-day">8</div>
+                    <div class="calendar-day">9</div>
+                    <div class="calendar-day">10</div>
+                    <div class="calendar-day">11</div>
+                    <div class="calendar-day">12</div>
+                    <div class="calendar-day">13</div>
+                    <div class="calendar-day">14</div>
+                    <div class="calendar-day">15</div>
+                    <div class="calendar-day">16</div>
+                    <div class="calendar-day">17</div>
+                    <div class="calendar-day">18</div>
+                    <div class="calendar-day">19</div>
+                    <div class="calendar-day">20</div>
+                    <div class="calendar-day">21</div>
+                    <div class="calendar-day">22</div>
+                    <div class="calendar-day">23</div>
+                    <div class="calendar-day">24</div>
+                    <div class="calendar-day">25</div>
+                    <div class="calendar-day">26</div>
+                    <div class="calendar-day">27</div>
+                    <div class="calendar-day wedding-day">28</div>
+                    <div class="calendar-day">29</div>
+                    <div class="calendar-day">30</div>
+                </div>
+            </div>
+            
+            <p style="font-size: 1.3em; color: #8b9d8a; font-weight: bold; margin-top: 20px;">28 de Noviembre, 2025</p>
+        </section>
+
+        <section class="photo-section"></section>
+
+        <section class="event-details-section">
+            <svg class="event-floral-decoration event-floral-left" viewBox="0 0 150 200">
+                <circle cx="30" cy="30" r="12" fill="#a8b5a7" opacity="0.7"/>
+                <circle cx="50" cy="45" r="15" fill="#9ab59a" opacity="0.7"/>
+                <circle cx="25" cy="60" r="10" fill="#7a8b7a" opacity="0.7"/>
+                <circle cx="60" cy="35" r="12" fill="#6b7c6b" opacity="0.7"/>
+                <circle cx="40" cy="70" r="9" fill="#f8bbd9" opacity="0.7"/>
+                <circle cx="70" cy="55" r="11" fill="#ffebee" opacity="0.7"/>
+                <path d="M15,80 Q35,70 55,85 Q75,100 95,90" stroke="#8b9d8a" stroke-width="3" fill="none" opacity="0.6"/>
+                <path d="M20,100 Q30,90 40,105 Q50,120 70,110" stroke="#8b9d8a" stroke-width="2" fill="none" opacity="0.5"/>
+                <path d="M10,120 Q25,110 45,125 Q65,140 85,130" stroke="#8b9d8a" stroke-width="2" fill="none" opacity="0.4"/>
+                <circle cx="35" cy="140" r="8" fill="#c8e6c9" opacity="0.6"/>
+                <circle cx="55" cy="155" r="6" fill="#a5d6a7" opacity="0.6"/>
+                <circle cx="25" cy="165" r="7" fill="#81c784" opacity="0.6"/>
+            </svg>
+            
+            <svg class="event-floral-decoration event-floral-right" viewBox="0 0 150 200">
+                <circle cx="120" cy="30" r="12" fill="#a8b5a7" opacity="0.7"/>
+                <circle cx="100" cy="45" r="15" fill="#9ab59a" opacity="0.7"/>
+                <circle cx="125" cy="60" r="10" fill="#7a8b7a" opacity="0.7"/>
+                <circle cx="90" cy="35" r="12" fill="#6b7c6b" opacity="0.7"/>
+                <circle cx="110" cy="70" r="9" fill="#f8bbd9" opacity="0.7"/>
+                <circle cx="80" cy="55" r="11" fill="#ffebee" opacity="0.7"/>
+                <path d="M135,80 Q115,70 95,85 Q75,100 55,90" stroke="#8b9d8a" stroke-width="3" fill="none" opacity="0.6"/>
+                <path d="M130,100 Q120,90 110,105 Q100,120 80,110" stroke="#8b9d8a" stroke-width="2" fill="none" opacity="0.5"/>
+                <path d="M140,120 Q125,110 105,125 Q85,140 65,130" stroke="#8b9d8a" stroke-width="2" fill="none" opacity="0.4"/>
+                <circle cx="115" cy="140" r="8" fill="#c8e6c9" opacity="0.6"/>
+                <circle cx="95" cy="155" r="6" fill="#a5d6a7" opacity="0.6"/>
+                <circle cx="125" cy="165" r="7" fill="#81c784" opacity="0.6"/>
+            </svg>
+
+            <div class="event-details-container">
+                <div class="event-card">
+                    <div class="event-icon">⛪</div>
+                    <h3 class="event-title">Ceremonia</h3>
+                    <div class="event-time">6:00 pm</div>
+                    <div class="event-location">
+                        Parroquia Jesús de la Divina Misericordia<br>
+                        Villa Fontana, Managua
+                    </div>
+                    <a href="https://ul.waze.com/ul?place=ChIJv0NqsZpVcY8RSatK-LGIjX4&ll=12.10306230%2C-86.26696320" target="_blank" class="event-map-btn">Ver mapa</a>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-icon">🥂</div>
+                    <h3 class="event-title">Recepción</h3>
+                    <div class="event-time">8:00 pm</div>
+                    <div class="event-location">
+                        DoubleTree by Hilton Hotel<br>
+                        Club Terraza, 600 mts sur, Managua.
+                    </div>
+                    <a href="https://ul.waze.com/ul?place=ChIJj-QLR7dVcY8Rbs-KRmUOZuI&ll=12.09670460%2C-86.26331540" target="_blank" class="event-map-btn">Ver mapa</a>
+                </div>
+            </div>
+
+            <div class="event-divider"></div>
+        </section>
+
+        <section class="itinerary-section fade-in-section">
+            <h2 class="slide-up" translate="no">Agenda</h2>
+            <div class="itinerary-container stagger-animation">
+                <div class="itinerary-item">
+                    <div class="itinerary-icon icon-location"></div>
+                    <div class="itinerary-time">6:00 pm</div>
+                    <div class="itinerary-separator"></div>
+                    <div class="itinerary-description">Ceremonia</div>
+                </div>
+
+                <div class="itinerary-item">
+                    <div class="itinerary-icon icon-camera"></div>
+                    <div class="itinerary-time">7:30 pm</div>
+                    <div class="itinerary-separator"></div>
+                    <div class="itinerary-description">Coctel de Bienvenida</div>
+                </div>
+
+                <div class="itinerary-item">
+                    <div class="itinerary-icon icon-utensils"></div>
+                    <div class="itinerary-time">8:30 pm</div>
+                    <div class="itinerary-separator"></div>
+                    <div class="itinerary-description">Cena</div>
+                </div>
+
+                <div class="itinerary-item">
+                    <div class="itinerary-icon icon-party"></div>
+                    <div class="itinerary-time">9:30 pm - 1:00 am</div>
+                    <div class="itinerary-separator"></div>
+                    <div class="itinerary-description">Festejo</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="dresscode-section fade-in-section">
+            <div class="dresscode-container stagger-animation">
+                <div class="dresscode-panel">
+                    <svg class="floral-decoration-dresscode floral-top-left" viewBox="0 0 80 80">
+                        <circle cx="20" cy="20" r="8" fill="#a8b5a7" opacity="0.6"/>
+                        <circle cx="40" cy="15" r="6" fill="#9ab59a" opacity="0.6"/>
+                        <circle cx="60" cy="25" r="7" fill="#7a8b7a" opacity="0.6"/>
+                        <circle cx="30" cy="40" r="5" fill="#6b7c6b" opacity="0.6"/>
+                        <path d="M10,50 Q25,40 45,55 Q65,70 80,60" stroke="#8b9d8a" stroke-width="2" fill="none" opacity="0.4"/>
+                    </svg>
+
+                    <div class="dresscode-icon"></div>
+                    <h2 class="dresscode-title" translate="no">Código de vestimenta</h2>
+                    <div class="dresscode-subtitle">FORMAL</div>
+                    <div class="dresscode-instructions" style="color: #5a5a5a !important;">
+                        <div class="dresscode-gender-specific">
+                            <div class="gender-item">
+                                <div class="gender-icon icon-gentleman"></div>
+                                <span>Saco y Corbata</span>
+                            </div>
+                            <div class="gender-item">
+                                <div class="gender-icon icon-dress"></div>
+                                <span>Vestido de Gala</span>
+                            </div>
+                        </div>
+                        <br>
+                        El cortejo vestirá la elegancia de los verdes suaves y naturales. Te invitamos a elegir otros tonos para acompañar con armonía nuestro gran día.
+                    </div>
+                    <div class="dresscode-instructions">
+                        Evitar colores: blanco, </br>verde: olivo, salvia, menta, eucalipto.
+                    </div>
+                    
+                    <div class="color-palette">
+                        <div class="color-swatch color-white"></div>
+                        <div class="color-swatch color-forest-green"></div>
+                        <div class="color-swatch color-olive-green"></div>
+                        <div class="color-swatch color-sage-green"></div>
+                        <div class="color-swatch color-mint-green"></div>
+                        <div class="color-swatch color-grey-green"></div>
+                    </div>
+
+                    <svg class="floral-decoration-dresscode floral-bottom-right" viewBox="0 0 120 120">
+                        <circle cx="30" cy="30" r="12" fill="#9ab59a" opacity="0.7"/>
+                        <circle cx="60" cy="25" r="8" fill="#a8b5a7" opacity="0.7"/>
+                        <circle cx="90" cy="35" r="10" fill="#7a8b7a" opacity="0.7"/>
+                        <circle cx="45" cy="60" r="9" fill="#6b7c6b" opacity="0.7"/>
+                        <circle cx="75" cy="70" r="7" fill="#f8bbd9" opacity="0.7"/>
+                        <path d="M20,80 Q40,70 60,85 Q80,100 100,90" stroke="#8b9d8a" stroke-width="3" fill="none" opacity="0.5"/>
+                        <path d="M25,100 Q35,95 50,105 Q65,115 85,110" stroke="#8b9d8a" stroke-width="2" fill="none" opacity="0.4"/>
+                    </svg>
+                </div>
+
+                <div class="photo-panel">
+                    <div class="couple-photo"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="gifts-adults-section fade-in-section">
+            <div class="gifts-adults-container stagger-animation">
+                <div class="info-panel">
+                    <div class="floral-decoration-panel floral-gifts-top-left"></div>
+                    
+                    <div class="panel-icon icon-envelope"></div>
+                    <h2 class="panel-title" translate="no">Muestras de cariño</h2>
+                    <div class="panel-text">
+                        Nos llena de alegría poder compartir este momento con ustedes.<br>
+                        Agradecemos de corazón sus muestras de cariño, tenemos a su disposición la siguiente cuenta:
+                    </div>
+                    
+                    <div class="bank-account-info">
+                        <div class="account-detail">
+                            <span class="account-label">Banco:</span>
+                            <span class="account-value">BAC Dólar</span>
+                        </div>
+                        <div class="account-detail">
+                            <span class="account-label">Cuenta:</span>
+                            <span class="account-value">361020506</span>
+                        </div>
+                        <div class="account-detail">
+                            <span class="account-label">Titular:</span>
+                            <span class="account-value">José Ignacio Delgado</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-panel">
+                    <div class="floral-decoration-panel floral-adults-bottom-right"></div>
+                    
+                    <div class="panel-icon icon-heart"></div>
+                    <h2 class="panel-title" translate="no">Reservado para adultos</h2>
+                    <div class="panel-text">
+                        Aunque amamos a los niños, ésta será una celebración para adultos. Esperamos su comprensión y que puedan disfrutar de una noche especial.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="accommodation-photos-section">
+            <div class="hero-romantic-photo"></div>
+            
+            <div class="content-blocks-section">
+                <div class="content-blocks-container">
+                    <div class="content-block">
+                        <div class="block-icon icon-hotel"></div>
+                        <h2 class="block-title">Hospedaje</h2>
+                        <div class="block-text">
+                            Pensando en su comodidad, el Hotel DoubleTree ofrece tarifas especiales para nuestros invitados.
+Al momento de reservar, solo deben indicar que asistirán a nuestra boda para aprovechar la tarifa preferencial.
+¡Será un placer que compartan con nosotros incluso esta parte de la celebración!
+                        </div>
+                        <a href="https://wa.me/50557999515?text=Hola!%20Soy%20un%20invitado%20de%20la%20Boda%20Delgado%20%26%20Fonseca,%20deseo%20información%20acerca%20de%20la%20reserva." target="_blank" class="block-button">Ver Hotel</a>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-icon icon-photos"></div>
+                        <h2 class="block-title">Fotos</h2>
+                        <div class="block-text">
+                            Comparte con nosotros tus fotografías y videos del evento. Crea recuerdos hermosos que durarán para siempre.
+                        </div>
+                        <a href="https://msgroomer.com/weeding-album" class="block-button" id="albumLink">Ir al álbum</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="rsvp-section">
+            <div class="rsvp-left-column">
+                <div class="floral-decoration-rsvp"></div>
+                
+                <div class="rsvp-icon"></div>
+                <h2 class="rsvp-title" translate="no">Confirmar asistencia</h2>
+                <div class="rsvp-instruction">
+                    Por favor, confirma tu asistencia antes del <u><b style="color: #585858;">05 de Noviembre de 2025</b></u>. Tu respuesta nos ayudará a organizar mejor este día tan especial.
+                </div>
+                <a href="#" class="rsvp-button">Confirmar aquí</a>
+                <div class="rsvp-closing-message">
+                    ¡Esperamos verlos y celebrar juntos!
+                </div>
+            </div>
+
+            <div class="rsvp-right-column">
+                <div class="couple-names"></div>
+                <div class="wedding-date" style="color: white !important; text-decoration: none !important;" data-phone="false">28 - 11 - 2025</div>
+            </div>
+        </section>
+
+        <button class="music-control" id="musicControl" title="Controlar música">
+            ▶
+        </button>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div class="modal-overlay" id="confirmationModal">
+        <div class="confirmation-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirmar Asistencia</h2>
+                <div class="modal-subtitle">Selecciona quiénes asistirán</div>
+            </div>
+            
+            <div class="guest-count-indicator" id="guestCount">
+                Código: <span id="currentCode"></span> - <span id="guestNumber"></span> invitado(s)
+            </div>
+            
+            <div class="guests-list" id="guestsList">
+                <!-- Los invitados se cargarán dinámicamente -->
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveConfirmations()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="backgroundMusic" loop>
+        <source src="/wassets/media/weeding_song.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const envelopeContainer = document.getElementById('envelopeContainer');
+        const envelopeFlap = document.getElementById('envelopeFlap');
+        const cardsContainer = document.getElementById('cardsContainer');
+        const detailsCard = document.getElementById('detailsCard');
+        const initialScreen = document.getElementById('initialScreen');
+        const weddingContent = document.getElementById('weddingContent');
+        const initialMessage = document.getElementById('initialMessage');
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const musicControl = document.getElementById('musicControl');
+
+        let isOpened = false;
+        let musicPlaying = false;
+
+        envelopeContainer.addEventListener('click', function(e) {
+            // Solo permitir abrir si el código es válido
+            if (!isValidCode) {
+                // Mostrar mensaje de error si se intenta abrir sin código válido
+                const clickText = document.querySelector('.click-text');
+                if (clickText) {
+                    const originalText = clickText.textContent;
+                    clickText.textContent = 'Código requerido';
+                    clickText.style.color = '#e74c3c';
+                    
+                    setTimeout(() => {
+                        clickText.textContent = originalText;
+                        clickText.style.color = 'white';
+                    }, 2000);
+                }
+                return;
+            }
+
+            if (!isOpened && !e.target.closest('.card')) {
+                isOpened = true;
+                envelopeFlap.classList.add('open');
+                envelopeContainer.classList.add('opened');
+                initialMessage.classList.add('fade-out');
+                
+                setTimeout(() => {
+                    cardsContainer.classList.add('visible');
+                }, 500);
+            }
+        });
+
+        detailsCard.addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            initialScreen.classList.add('hidden');
+            
+            setTimeout(() => {
+                initialScreen.style.display = 'none';
+                weddingContent.classList.add('visible');
+                
+                backgroundMusic.play().catch(e => console.log('Error al reproducir música:', e));
+                musicPlaying = true;
+                musicControl.textContent = '⏸';
+            }, 600);
+        });
+
+        musicControl.addEventListener('click', function() {
+            if (musicPlaying) {
+                backgroundMusic.pause();
+                musicControl.textContent = '▶';
+                musicPlaying = false;
+            } else {
+                backgroundMusic.play().catch(e => console.log('Error al reproducir música:', e));
+                musicControl.textContent = '⏸';
+                musicPlaying = true;
+            }
+        });
+
+        // Countdown Timer
+        function updateCountdown() {
+            const weddingDate = new Date('2025-11-28T00:00:00').getTime();
+            const now = new Date().getTime();
+            const distance = weddingDate - now;
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById('days').textContent = days.toString().padStart(2, '0');
+            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+        }
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+
+        // Sistema de códigos y confirmación
+        let currentGuestData = null;
+        let currentCode = null;
+        let isValidCode = false;
+
+        // Función para obtener el código de la URL
+        function getCodeFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('code');
+        }
+
+        // Función para actualizar el enlace del álbum con el código
+        function updateAlbumLink(code) {
+            const albumLink = document.getElementById('albumLink');
+            if (albumLink && code) {
+                albumLink.href = `https://msgroomer.com/weeding-album?code=${encodeURIComponent(code)}`;
+            }
+        }
+
+        // Función para controlar la visibilidad de la sección de "Muestras de cariño"
+        function updateGiftsSectionVisibility(code) {
+            const giftsSection = document.querySelector('.gifts-adults-section');
+            const giftsPanel = giftsSection ? giftsSection.querySelector('.info-panel:first-child') : null;
+            
+            if (!giftsPanel) return;
+            
+            // Verificar si el código está en la lista de códigos restringidos
+            if (CODES_WITHOUT_GIFTS_SECTION.includes(code)) {
+                // Ocultar el panel de "Muestras de cariño"
+                giftsPanel.style.display = 'none';
+                console.log(`Sección de "Muestras de cariño" oculta para el código: ${code}`);
+            } else {
+                // Mostrar el panel de "Muestras de cariño"
+                giftsPanel.style.display = '';
+                console.log(`Sección de "Muestras de cariño" visible para el código: ${code}`);
+            }
+        }
+
+        // Función para actualizar el texto de confirmación de asistencia según el código
+        function updateRSVPInstructionText(code) {
+            const rsvpInstruction = document.querySelector('.rsvp-instruction');
+            
+            if (!rsvpInstruction) return;
+            
+            // Verificar si el código está en la lista de códigos con texto alternativo
+            if (CODES_WITH_ALTERNATIVE_TEXT.includes(code)) {
+                // Mostrar texto alternativo (sin fecha límite)
+                rsvpInstruction.innerHTML = 'Por favor, ayúdanos a confirmar tu asistencia . Tu respuesta nos ayudará a organizar mejor este día tan especial.';
+                console.log(`Texto alternativo de confirmación mostrado para el código: ${code}`);
+            } else {
+                // Mostrar texto normal (con fecha límite)
+                rsvpInstruction.innerHTML = 'Por favor, confirma tu asistencia antes del <u><b style="color: #585858;">05 de Noviembre de 2025</b></u>. Tu respuesta nos ayudará a organizar mejor este día tan especial.';
+                console.log(`Texto normal de confirmación mostrado para el código: ${code}`);
+            }
+        }
+
+        // ========================================
+        // CONFIGURACIÓN DE CÓDIGOS CON RESTRICCIONES
+        // ========================================
+        // Códigos que NO deben ver la sección de "Muestras de cariño"
+        const CODES_WITHOUT_GIFTS_SECTION = ['YAD', 'DAN'];
+        
+        // Códigos que deben ver el texto alternativo de confirmación de asistencia
+        const CODES_WITH_ALTERNATIVE_TEXT = ['ALV', 'CLA', 'LG9', 'GEO', 'EVE'];
+
+        // ========================================
+        // CONFIGURACIÓN DE API
+        // ========================================
+        // URL base de la API - CAMBIAR POR LA URL REAL DE TU API
+        const API_BASE_URL = 'https://msgroomer.com/api';
+        
+        // Endpoint: GET /api/guests/{code}
+        // Respuesta esperada:
+        // {
+        //   "code": "FOR",
+        //   "guests": [
+        //     {
+        //       "_id": "68f6fbc94bd650a041899bfb",
+        //       "codigo": "FOR",
+        //       "id": "FOR_1",
+        //       "nombre": "Landes Forbes",
+        //       "principal": true,
+        //       "visited": false,
+        //       "confirmado": false,
+        //       "confirmed_at": null
+        //     }
+        //   ]
+        // }
+        
+        // Endpoint: POST /api/guests/confirm
+        // Body: { "code": "F1A", "id": "F1A_1", "confirmar": true/false }
+        // Respuesta esperada:
+        // {
+        //   "msg": "Asistencia de Ana María García confirmada con éxito.",
+        //   "guest": { "id": "F1A_1", "nombre": "Ana María García", "confirmado": true }
+        // }
+        
+        // Endpoint: POST /api/guests/visited
+        // Body: { "code": "B2Z" }
+        // Marca a todos los invitados del grupo como visitados
+        
+        // Función para marcar invitados como visitados
+        // Se ejecuta automáticamente después de validar un código exitosamente
+        async function markGuestsAsVisited(code) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/guests/visited`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ code: code })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.msg || `Error HTTP: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('Invitados marcados como visitados:', result);
+                return {
+                    success: true,
+                    message: result.msg || 'Invitados marcados como visitados'
+                };
+            } catch (error) {
+                console.error('Error al marcar invitados como visitados:', error);
+                return {
+                    success: false,
+                    message: error.message || 'Error al marcar como visitados'
+                };
+            }
+        }
+        
+        // Función para validar estructura de datos de la API
+        function validateGuestDataStructure(data) {
+            if (!data || typeof data !== 'object') {
+                console.error('Datos de invitados inválidos: no es un objeto');
+                return false;
+            }
+            
+            if (!data.code || typeof data.code !== 'string') {
+                console.error('Datos de invitados inválidos: falta código o no es string');
+                return false;
+            }
+            
+            if (!Array.isArray(data.guests)) {
+                console.error('Datos de invitados inválidos: guests no es un array');
+                return false;
+            }
+            
+            for (const guest of data.guests) {
+                if (!guest.id || !guest.nombre) {
+                    console.error('Datos de invitados inválidos: invitado sin id o nombre', guest);
+                    return false;
+                }
+                
+                // Validar que confirmado sea un booleano (puede ser true, false, o undefined)
+                if (guest.confirmado !== undefined && typeof guest.confirmado !== 'boolean') {
+                    console.error('Datos de invitados inválidos: confirmado debe ser booleano', guest);
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
+        // Función para obtener datos de invitados desde la API
+        async function fetchGuestData(code) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/guests/${code}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        // Código no encontrado
+                        console.log(`Código ${code} no encontrado en la API`);
+                        return null;
+                    } else if (response.status >= 500) {
+                        // Error del servidor
+                        console.error('Error del servidor:', response.status);
+                        throw new Error('Error del servidor. Intenta más tarde.');
+                    } else {
+                        // Otros errores HTTP
+                        console.error('Error HTTP:', response.status);
+                        throw new Error('Error al conectar con el servidor.');
+                    }
+                }
+                
+                const guestData = await response.json();
+                console.log('Datos de invitados obtenidos:', guestData);
+                
+                // Validar estructura de datos
+                if (!validateGuestDataStructure(guestData)) {
+                    console.error('Estructura de datos inválida recibida de la API');
+                    return null;
+                }
+                
+                return guestData;
+            } catch (error) {
+                console.error('Error al cargar datos de invitados:', error);
+                // En caso de error de red, retornamos null para mostrar "Código no válido"
+                return null;
+            }
+        }
+
+        // Función para validar el código y configurar la UI
+        async function validateCode() {
+            const code = getCodeFromURL();
+            const clickText = document.querySelector('.click-text');
+            const envelopeContainer = document.getElementById('envelopeContainer');
+            
+            // Resetear estado de confirmaciones al cambiar de código
+            resetConfirmationState();
+            
+            if (!code) {
+                // No hay código en la URL
+                isValidCode = false;
+                if (clickText) {
+                    clickText.textContent = 'Código no válido';
+                    // clickText.style.color = '#ca9a95';
+                }
+                return;
+            }
+
+            try {
+                const guestData = await fetchGuestData(code);
+                
+                if (!guestData) {
+                    // Código no encontrado en la base de datos
+                    isValidCode = false;
+                    if (clickText) {
+                        clickText.textContent = 'Código no válido';
+                        // clickText.style.color = '#ca9a95';
+                    }
+                    return;
+                }
+
+                // Código válido
+                isValidCode = true;
+                currentGuestData = guestData;
+                currentCode = code;
+                
+                // Actualizar el enlace del álbum con el código
+                updateAlbumLink(code);
+                
+                // Actualizar visibilidad de la sección de "Muestras de cariño"
+                updateGiftsSectionVisibility(code);
+                
+                // Actualizar texto de confirmación de asistencia según el código
+                updateRSVPInstructionText(code);
+                
+                // Marcar invitados como visitados después de validar exitosamente
+                // Esto se ejecuta automáticamente cuando se carga la página con un código válido
+                const visitedResult = await markGuestsAsVisited(code);
+                if (visitedResult.success) {
+                    console.log('✅ Invitados marcados como visitados correctamente');
+                } else {
+                    console.warn('⚠️ No se pudieron marcar como visitados:', visitedResult.message);
+                    // No mostramos error al usuario ya que no es crítico para la funcionalidad
+                }
+                
+                if (clickText) {
+                    clickText.textContent = 'Clic aquí para abrir';
+                    clickText.style.color = 'white';
+                }
+                
+                // Actualizar el número de personas en el card
+                const guestCountDisplay = document.getElementById('guestCountDisplay');
+                if (guestCountDisplay) {
+                    const guestCount = guestData.guests.length;
+                    guestCountDisplay.textContent = `${guestCount} persona${guestCount !== 1 ? 's' : ''}`;
+                }
+                
+                console.log('Código válido:', code, 'Invitados:', guestData.guests.length);
+                
+            } catch (error) {
+                console.error('Error al validar código:', error);
+                isValidCode = false;
+                if (clickText) {
+                    clickText.textContent = 'Código no válido';
+                    clickText.style.color = '#e74c3c';
+                }
+            }
+        }
+
+        // Función para mostrar el modal de confirmación
+        // Mantiene el estado local entre aperturas del modal para preservar cambios
+        function showConfirmationModal(guestData) {
+            currentGuestData = guestData;
+            currentCode = guestData.code;
+            
+            // Actualizar el enlace del álbum con el código
+            updateAlbumLink(guestData.code);
+            
+            // Actualizar visibilidad de la sección de "Muestras de cariño"
+            updateGiftsSectionVisibility(guestData.code);
+            
+            // Actualizar texto de confirmación de asistencia según el código
+            updateRSVPInstructionText(guestData.code);
+            
+            // NO limpiar el estado local - mantener los cambios de la sesión actual
+            // Solo inicializar si es la primera vez (estado vacío)
+            if (confirmationState.confirmedGuests.size === 0) {
+                // Inicializar estado de confirmaciones basado en datos del backend solo la primera vez
+                guestData.guests.forEach(guest => {
+                    if (guest.confirmado === true) {
+                        confirmationState.confirmedGuests.add(guest.id);
+                    }
+                });
+            }
+            
+            confirmationState.totalGuests = guestData.guests.length;
+            confirmationState.isProcessing = false;
+            
+            // Actualizar UI del modal
+            document.getElementById('currentCode').textContent = guestData.code;
+            document.getElementById('guestNumber').textContent = guestData.guests.length;
+            
+            const guestsList = document.getElementById('guestsList');
+            guestsList.innerHTML = '';
+            
+            // Crear elementos de invitados con estado actual (backend + cambios locales)
+            guestData.guests.forEach(guest => {
+                // Usar el estado local actual, no el del backend
+                const isConfirmed = confirmationState.confirmedGuests.has(guest.id);
+                
+                const guestItem = document.createElement('div');
+                guestItem.className = 'guest-item';
+                guestItem.innerHTML = `
+                    <input type="checkbox" class="guest-checkbox" id="guest-${guest.id}" ${isConfirmed ? 'checked' : ''}>
+                    <label for="guest-${guest.id}" class="guest-name">
+                        ${guest.nombre}
+                        ${isConfirmed ? '<span class="status-badge confirmed">Confirmado</span>' : '<span class="status-badge pending">Pendiente</span>'}
+                    </label>
+                `;
+                
+                // Hacer todo el contenedor clickeable
+                guestItem.addEventListener('click', (e) => {
+                    // Evitar doble clic si se hace clic directamente en el checkbox
+                    if (e.target.type === 'checkbox') return;
+                    
+                    const checkbox = guestItem.querySelector('.guest-checkbox');
+                    checkbox.checked = !checkbox.checked;
+                });
+                
+                guestsList.appendChild(guestItem);
+            });
+            
+            // Mostrar modal
+            document.getElementById('confirmationModal').classList.add('active');
+        }
+
+        // Función para cerrar el modal
+        function closeModal() {
+            document.getElementById('confirmationModal').classList.remove('active');
+        }
+
+        // Función para resetear el estado de confirmaciones (cuando se cierra la sesión)
+        function resetConfirmationState() {
+            confirmationState.confirmedGuests.clear();
+            confirmationState.totalGuests = 0;
+            confirmationState.isProcessing = false;
+        }
+
+        // ========================================
+        // SISTEMA DE CONFIRMACIÓN DE ASISTENCIA
+        // ========================================
+        
+        // Estado de confirmaciones
+        let confirmationState = {
+            isProcessing: false,
+            confirmedGuests: new Set(),
+            totalGuests: 0
+        };
+
+        // Función para mostrar notificaciones elegantes
+        function showNotification(message, type = 'success') {
+            // Crear elemento de notificación
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <span class="notification-message">${message}</span>
+                    <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+                </div>
+            `;
+            
+            // Agregar estilos si no existen
+            if (!document.querySelector('#notification-styles')) {
+                const styles = document.createElement('style');
+                styles.id = 'notification-styles';
+                styles.textContent = `
+                    .notification {
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: white;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        z-index: 10000;
+                        max-width: 400px;
+                        animation: slideInRight 0.3s ease-out;
+                    }
+                    .notification-success {
+                        border-left: 4px solid #546d53;
+                    }
+                    .notification-error {
+                        border-left: 4px solid #e74c3c;
+                    }
+                    .notification-content {
+                        padding: 16px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    }
+                    .notification-message {
+                        color: #333;
+                        font-size: 14px;
+                        line-height: 1.4;
+                    }
+                    .notification-close {
+                        background: none;
+                        border: none;
+                        font-size: 18px;
+                        color: #999;
+                        cursor: pointer;
+                        margin-left: 12px;
+                    }
+                    .notification-close:hover {
+                        color: #666;
+                    }
+                    @keyframes slideInRight {
+                        from {
+                            transform: translateX(100%);
+                            opacity: 0;
+                        }
+                        to {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
+                    }
+                `;
+                document.head.appendChild(styles);
+            }
+            
+            // Agregar al DOM
+            document.body.appendChild(notification);
+            
+            // Auto-remover después de 5 segundos
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        // Función para actualizar el estado de confirmación de un invitado individual
+        // Implementa optimistic response para actualización inmediata de la UI
+        async function updateGuestConfirmation(guestId, guestName, confirmar) {
+            // OPTIMISTIC UPDATE: Mostrar estado de procesando inmediatamente
+            updateGuestBadge(guestId, confirmar, true);
+            
+            // Actualizar estado local inmediatamente
+            if (confirmar) {
+                confirmationState.confirmedGuests.add(guestId);
+            } else {
+                confirmationState.confirmedGuests.delete(guestId);
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/guests/confirm`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        code: currentCode,    // Código del grupo para validación en el backend
+                        id: guestId,         // ID único del invitado
+                        confirmar: confirmar // Estado de confirmación (true/false)
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.msg || `Error HTTP: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('Actualización exitosa:', result);
+                
+                // Actualizar UI con estado final (quitar "procesando")
+                updateGuestBadge(guestId, confirmar, false);
+                
+                return {
+                    success: true,
+                    message: result.msg,
+                    guest: result.guest,
+                    confirmed: confirmar
+                };
+            } catch (error) {
+                console.error('Error al actualizar confirmación:', error);
+                
+                // REVERT OPTIMISTIC UPDATE: Deshacer cambios en caso de error
+                const originalState = !confirmar; // Estado original era el opuesto
+                updateGuestBadge(guestId, originalState);
+                
+                // Revertir estado local
+                if (originalState) {
+                    confirmationState.confirmedGuests.add(guestId);
+                } else {
+                    confirmationState.confirmedGuests.delete(guestId);
+                }
+                
+                return {
+                    success: false,
+                    message: error.message || 'Error al actualizar confirmación'
+                };
+            }
+        }
+
+        // Función para actualizar el badge visual y checkbox de un invitado
+        function updateGuestBadge(guestId, confirmar, isProcessing = false) {
+            const guestLabel = document.querySelector(`label[for="guest-${guestId}"]`);
+            const guestCheckbox = document.getElementById(`guest-${guestId}`);
+            
+            if (!guestLabel || !guestCheckbox) return;
+
+            // Actualizar checkbox
+            guestCheckbox.checked = confirmar;
+
+            // Buscar o crear el badge
+            let badge = guestLabel.querySelector('.status-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'status-badge';
+                guestLabel.appendChild(badge);
+            }
+
+            // Actualizar badge según el estado
+            if (isProcessing) {
+                badge.textContent = 'Procesando...';
+                badge.className = 'status-badge processing';
+            } else if (confirmar) {
+                badge.textContent = 'Confirmado';
+                badge.className = 'status-badge confirmed';
+            } else {
+                badge.textContent = 'Pendiente';
+                badge.className = 'status-badge pending';
+            }
+        }
+
+        // Función para guardar todas las confirmaciones usando Promise.all para procesamiento paralelo
+        async function saveConfirmations() {
+            if (confirmationState.isProcessing) {
+                console.log('Ya hay una confirmación en proceso...');
+                return;
+            }
+
+            confirmationState.isProcessing = true;
+            
+            // Deshabilitar botón mientras se procesa
+            const saveButton = document.querySelector('.modal-btn-primary');
+            const originalText = saveButton.textContent;
+            saveButton.textContent = 'Guardando...';
+            saveButton.disabled = true;
+
+            try {
+                const checkboxes = document.querySelectorAll('.guest-checkbox');
+                
+                // Preparar datos de todos los invitados (seleccionados y no seleccionados) para actualizar
+                const allGuests = Array.from(checkboxes).map(checkbox => {
+                    const guestId = checkbox.id.split('-')[1];
+                    const guestName = checkbox.nextElementSibling.textContent;
+                    const isChecked = checkbox.checked;
+                    const wasConfirmed = confirmationState.confirmedGuests.has(guestId);
+                    
+                    // Solo procesar si el estado cambió
+                    const needsUpdate = isChecked !== wasConfirmed;
+                    
+                    return {
+                        id: guestId,
+                        name: guestName,
+                        confirmar: isChecked,
+                        needsUpdate: needsUpdate,
+                        promise: needsUpdate ? updateGuestConfirmation(guestId, guestName, isChecked) : null
+                    };
+                });
+
+                // Filtrar solo los que necesitan actualización
+                const guestsToUpdate = allGuests.filter(guest => guest.needsUpdate);
+
+                // Verificar si hay cambios para procesar
+                if (guestsToUpdate.length === 0) {
+                    showNotification('No hay cambios para guardar.', 'error');
+                    return;
+                }
+
+                console.log(`Procesando ${guestsToUpdate.length} actualizaciones en paralelo...`);
+
+                // Procesar todas las actualizaciones en paralelo usando Promise.all
+                // Esto es mucho más eficiente que el procesamiento secuencial anterior
+                const results = await Promise.all(guestsToUpdate.map(guest => guest.promise));
+                
+                // Separar resultados exitosos de errores
+                const confirmations = [];
+                const cancellations = [];
+                const errors = [];
+                
+                results.forEach((result, index) => {
+                    const guest = guestsToUpdate[index];
+                    
+                    if (result.success) {
+                        if (result.confirmed) {
+                            confirmations.push({
+                                id: guest.id,
+                                name: guest.name,
+                                confirmed: true
+                            });
+                        } else {
+                            cancellations.push({
+                                id: guest.id,
+                                name: guest.name,
+                                confirmed: false
+                            });
+                        }
+                    } else {
+                        errors.push({
+                            id: guest.id,
+                            name: guest.name,
+                            error: result.message
+                        });
+                    }
+                });
+
+                // Mostrar resultados
+                const hasSuccess = confirmations.length > 0 || cancellations.length > 0;
+                
+                if (hasSuccess) {
+                    let successMessages = [];
+                    
+                    if (confirmations.length > 0) {
+                        successMessages.push(`${confirmations.length} invitado(s) confirmaron su asistencia`);
+                    }
+                    
+                    if (cancellations.length > 0) {
+                        successMessages.push(`${cancellations.length} invitado(s) cancelaron su asistencia`);
+                    }
+                    
+                    const successMessage = `¡Actualización exitosa! ${successMessages.join(' y ')}.`;
+                    
+                    if (errors.length > 0) {
+                        const errorMessage = `Algunos invitados no pudieron actualizarse: ${errors.map(e => e.name).join(', ')}`;
+                        showNotification(successMessage, 'success');
+                        showNotification(errorMessage, 'error');
+                    } else {
+                        showNotification(successMessage, 'success');
+                    }
+                    
+                    closeModal();
+                } else if (errors.length > 0) {
+                    const errorMessage = `No se pudo actualizar ninguna confirmación. Verifique los datos e intente nuevamente.`;
+                    showNotification(errorMessage, 'error');
+                } else {
+                    showNotification('No hay cambios para guardar.', 'error');
+                }
+
+            } catch (error) {
+                console.error('Error general en confirmaciones:', error);
+                showNotification('Error inesperado al guardar confirmaciones. Intenta nuevamente.', 'error');
+            } finally {
+                // Restaurar botón
+                saveButton.textContent = originalText;
+                saveButton.disabled = false;
+                confirmationState.isProcessing = false;
+            }
+        }
+
+        // Función para manejar el botón de confirmar asistencia
+        async function handleRSVPButton() {
+            if (!isValidCode || !currentGuestData) {
+                alert('Código de invitación no válido o no encontrado.');
+                return;
+            }
+
+            showConfirmationModal(currentGuestData);
+        }
+
+        // Función para hacer scroll a la siguiente sección
+        function scrollToNextSection() {
+            const nextSection = document.querySelector('.content-section');
+            if (nextSection) {
+                nextSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }
+
+        // Función para ocultar el indicador de scroll cuando se hace scroll
+        function handleScroll() {
+            const scrollIndicator = document.querySelector('.scroll-indicator');
+            if (scrollIndicator) {
+                const scrollY = window.scrollY;
+                const heroSection = document.querySelector('.hero-section');
+                const heroHeight = heroSection ? heroSection.offsetHeight : 0;
+                
+                if (scrollY > heroHeight * 0.3) {
+                    scrollIndicator.style.opacity = '0';
+                    scrollIndicator.style.pointerEvents = 'none';
+                } else {
+                    scrollIndicator.style.opacity = '1';
+                    scrollIndicator.style.pointerEvents = 'auto';
+                }
+            }
+        }
+
+        // ========================================
+        // SISTEMA DE ANIMACIONES DE SCROLL - CORREGIDO
+        // ========================================
+        
+        // Función para verificar si un elemento está en el viewport
+        function isInViewport(element, threshold = 0.1) {
+            const rect = element.getBoundingClientRect();
+            const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+            const windowWidth = window.innerWidth || document.documentElement.clientWidth;
+            
+            return (
+                rect.top <= windowHeight * (1 - threshold) &&
+                rect.bottom >= windowHeight * threshold &&
+                rect.left <= windowWidth &&
+                rect.right >= 0
+            );
+        }
+
+        // Función para activar animaciones cuando están en viewport
+        function activateAnimations() {
+            const animatedElements = document.querySelectorAll(`
+                .fade-in-section,
+                .fade-in-left,
+                .fade-in-right,
+                .scale-in,
+                .slide-up,
+                .stagger-animation,
+                .hero-fade-in,
+                .stat-card-animation,
+                .table-animation,
+                .group-animation,
+                .search-animation
+            `);
+
+            animatedElements.forEach(element => {
+                if (isInViewport(element, 0.2) && !element.classList.contains('visible')) {
+                    element.classList.add('visible');
+                }
+            });
+        }
+
+        // Función para activar animaciones del hero inmediatamente
+        function activateHeroAnimations() {
+            const heroElements = document.querySelectorAll('.hero-fade-in, .scale-in, .slide-up');
+            heroElements.forEach(element => {
+                if (element.closest('.hero-section')) {
+                    setTimeout(() => {
+                        element.classList.add('visible');
+                    }, 200);
+                }
+            });
+        }
+
+        // Función optimizada para manejar scroll con throttling
+        let scrollTimeout;
+        function handleScrollAnimations() {
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+            
+            scrollTimeout = setTimeout(() => {
+                activateAnimations();
+            }, 16); // ~60fps
+        }
+
+        // ========================================
+        // INICIALIZACIÓN DE LA APLICACIÓN
+        // ========================================
+        
+        // Inicialización cuando se carga la página
+        document.addEventListener('DOMContentLoaded', async () => {
+            const rsvpButton = document.querySelector('.rsvp-button');
+            if (rsvpButton) {
+                rsvpButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    handleRSVPButton();
+                });
+            }
+
+            // Validar código al cargar la página
+            await validateCode();
+            
+            // Agregar listener para el scroll
+            window.addEventListener('scroll', handleScroll);
+            
+            // Inicializar sistema de animaciones
+            activateHeroAnimations();
+            activateAnimations(); // Verificar elementos ya visibles
+            window.addEventListener('scroll', handleScrollAnimations);
+            
+            // Mostrar información del código si existe
+            const code = getCodeFromURL();
+            if (code) {
+                console.log('Código de invitación detectado:', code);
+                console.log('Código válido:', isValidCode);
+            } else {
+                console.log('No se detectó código en la URL');
+            }
+        });
+    </script>
+</body>
+</html>

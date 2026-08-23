@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="es" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <title>Álbum de Fotos - José & Joseline</title>
+    <script src="cache-bust.js"></script>
+    <link rel="stylesheet" href="album.css" id="css-album">
+    <style>
+        /* CSS crítico para evitar FOUC */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f3f0 0%, #e8e6e1 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Loading Animation */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f5f3f0 0%, #e8e6e1 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-container {
+            text-align: center;
+            color: #546d53;
+        }
+
+        .loading-hearts {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .loading-heart {
+            width: 20px;
+            height: 20px;
+            background: #a8b5a7;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            margin: 0 5px;
+            animation: heartBeat 1.5s ease-in-out infinite;
+        }
+
+        .loading-heart:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-heart:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes heartBeat {
+            0%, 100% {
+                transform: rotate(-45deg) scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: rotate(-45deg) scale(1.3);
+                opacity: 0.7;
+            }
+        }
+
+        .loading-text {
+            font-size: 1.5em;
+            font-style: italic;
+            color: #546d53;
+            margin-bottom: 20px;
+            font-family: 'Great Vibes', cursive;
+            animation: fadeInOut 2s ease-in-out infinite;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e8f5e8;
+            border-top: 3px solid #546d53;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .loading-progress {
+            width: 200px;
+            height: 4px;
+            background: #e8f5e8;
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .loading-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #546d53, #8b9d8a);
+            border-radius: 2px;
+            animation: progress 3s ease-in-out infinite;
+        }
+
+        @keyframes progress {
+            0% {
+                width: 0%;
+                transform: translateX(-100%);
+            }
+            50% {
+                width: 70%;
+                transform: translateX(0%);
+            }
+            100% {
+                width: 100%;
+                transform: translateX(0%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-container">
+            <div class="loading-hearts">
+                <div class="loading-heart"></div>
+                <div class="loading-heart"></div>
+                <div class="loading-heart"></div>
+            </div>
+            <div class="loading-text">Cargando álbum de fotos...</div>
+            <div class="loading-spinner"></div>
+            <div class="loading-progress">
+                <div class="loading-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>Álbum de Fotos</h1>
+            <p>Comparte tus momentos especiales de nuestra boda</p>
+            <div class="group-code-display" id="groupCodeDisplay" style="display: none;">
+                <!-- El código de grupo se mostrará aquí si existe -->
+            </div>
+            <button class="selection-mode-btn" id="selectionModeBtn" onclick="toggleSelectionMode()" style="display: none;">
+                Seleccionar fotos
+            </button>
+        </div>
+
+        <div class="gallery-container">
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- Las fotos se cargarán dinámicamente -->
+            </div>
+
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+                <p>Cargando más fotos...</p>
+            </div>
+
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <h3>¡No hay fotos aún!</h3>
+                <p>Sé el primero en compartir un momento especial</p>
+                <div class="upload-prompt" onclick="openFileDialog()">
+                    📸 Subir primera foto
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Buttons -->
+    <div class="fab-container">
+        <button class="fab fab-camera" onclick="openCamera()" title="Tomar foto">
+            📷
+        </button>
+        <button class="fab fab-gallery" onclick="openFileDialog()" title="Seleccionar de galería">
+            🖼️
+        </button>
+    </div>
+
+    <!-- Modal para vista de foto -->
+    <div class="photo-modal" id="photoModal" onclick="closeModal()">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <img id="modalImage" src="" alt="Foto">
+    </div>
+
+    <!-- Modal de cámara -->
+    <div class="camera-modal" id="cameraModal">
+        <div class="camera-container">
+            <video id="cameraVideo" class="camera-video" autoplay playsinline></video>
+            <canvas id="cameraCanvas" class="camera-canvas"></canvas>
+            
+            <!-- Top bar -->
+            <div class="camera-top-bar">
+                <button class="camera-close-btn" onclick="closeCamera()">✕</button>
+                <button class="camera-flip-btn" onclick="flipCamera()">🔄</button>
+            </div>
+            
+            <!-- Bottom bar -->
+            <div class="camera-bottom-bar">
+                <div class="camera-controls">
+                    <button class="camera-gallery-btn" onclick="openFileDialog()" id="galleryPreview">
+                        <img src="" alt="Galería" style="display: none;">
+                    </button>
+                    <button class="camera-capture-btn" onclick="capturePhoto()"></button>
+                    <button class="camera-flip-bottom" onclick="flipCamera()">🔄</button>
+                </div>
+            </div>
+            
+            <!-- Focus indicator -->
+            <div class="camera-focus" id="cameraFocus"></div>
+        </div>
+    </div>
+
+    <!-- File inputs -->
+    <input type="file" id="cameraInput" class="file-input" accept="image/*" capture="camera">
+    <input type="file" id="galleryInput" class="file-input" accept="image/*" multiple>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Upload Progress Modal -->
+    <div class="upload-progress-modal" id="uploadProgressModal">
+        <div class="upload-progress-container">
+            <div class="upload-progress-icon">
+                <div class="upload-spinner"></div>
+            </div>
+            <div class="upload-progress-text" id="uploadProgressText">Subiendo fotos...</div>
+            <div class="upload-progress-details" id="uploadProgressDetails">Preparando archivos</div>
+            <div class="upload-progress-bar">
+                <div class="upload-progress-fill" id="uploadProgressFill"></div>
+            </div>
+            <div class="upload-progress-percentage" id="uploadProgressPercentage">0%</div>
+            <button class="upload-cancel-btn" id="uploadCancelBtn" onclick="cancelUpload()">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Selection Toolbar -->
+    <div class="selection-toolbar" id="selectionToolbar">
+        <div class="selection-info" id="selectionInfo">0 fotos seleccionadas</div>
+        <div class="selection-actions">
+            <button class="selection-btn" onclick="exitSelectionMode()">Cancelar</button>
+            <button class="selection-btn danger" onclick="showDeleteModal()">Eliminar</button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="delete-modal" id="deleteModal">
+        <div class="delete-modal-container">
+            <div class="delete-modal-icon">🗑️</div>
+            <div class="delete-modal-title">Confirmar eliminación</div>
+            <div class="delete-modal-text">
+                ¿Estás seguro de que quieres eliminar <span id="deleteCount">0</span> foto(s) seleccionada(s)?<br>
+                Esta acción no se puede deshacer.
+            </div>
+            <input type="password" class="delete-modal-input" id="deleteApiKey" placeholder="Ingresa la clave de API" autocomplete="off">
+            <div class="delete-modal-actions">
+                <button class="delete-modal-btn cancel" onclick="hideDeleteModal()">Cancelar</button>
+                <button class="delete-modal-btn confirm" id="confirmDeleteBtn" onclick="confirmDelete()" disabled>Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // CONFIGURACIÓN DE API
+        // ========================================
+        const API_BASE_URL = 'https://msgroomer.com/api';
+
+        // Variables globales
+        let currentPage = 1;
+        let totalPages = 1;
+        let isLoading = false;
+        let groupCode = '';
+        let uploadController = null;
+        let isUploading = false;
+        let isSelectionMode = false;
+        let selectedPhotos = new Set();
+        let allPhotos = [];
+
+        // ========================================
+        // FUNCIONES DE INICIALIZACIÓN
+        // ========================================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obtener código de grupo de la URL si existe
+            groupCode = getGroupCodeFromURL();
+            
+            // Mostrar código de grupo si existe
+            if (groupCode) {
+                const groupCodeDisplay = document.getElementById('groupCodeDisplay');
+                groupCodeDisplay.textContent = `Grupo: ${groupCode}`;
+                groupCodeDisplay.style.display = 'inline-block';
+            }
+            
+            // Cargar fotos iniciales
+            loadPhotos();
+            
+            // Configurar infinite scroll
+            setupInfiniteScroll();
+        });
+
+        // ========================================
+        // FUNCIONES DE UTILIDAD
+        // ========================================
+        
+        function getGroupCodeFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('code') || urlParams.get('groupCode') || '';
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // ========================================
+        // FUNCIONES DE PROGRESO DE SUBIDA
+        // ========================================
+        
+        function showUploadProgress() {
+            isUploading = true;
+            document.getElementById('uploadProgressModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            updateUploadProgress(0, 'Preparando archivos...');
+        }
+
+        function hideUploadProgress() {
+            isUploading = false;
+            document.getElementById('uploadProgressModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function updateUploadProgress(percentage, details) {
+            document.getElementById('uploadProgressFill').style.width = percentage + '%';
+            document.getElementById('uploadProgressPercentage').textContent = Math.round(percentage) + '%';
+            document.getElementById('uploadProgressDetails').textContent = details;
+        }
+
+        function cancelUpload() {
+            if (uploadController) {
+                uploadController.abort();
+                uploadController = null;
+            }
+            hideUploadProgress();
+            showNotification('Subida cancelada', 'error');
+        }
+
+        // ========================================
+        // FUNCIONES DE SELECCIÓN MÚLTIPLE
+        // ========================================
+        
+        function toggleSelectionMode() {
+            isSelectionMode = !isSelectionMode;
+            const body = document.body;
+            const selectionBtn = document.getElementById('selectionModeBtn');
+            const selectionToolbar = document.getElementById('selectionToolbar');
+            
+            if (isSelectionMode) {
+                body.classList.add('selection-mode');
+                selectionBtn.textContent = 'Cancelar selección';
+                selectionBtn.classList.add('active');
+                selectionToolbar.classList.add('active');
+                showNotification('Modo de selección activado', 'success');
+            } else {
+                exitSelectionMode();
+            }
+        }
+
+        function exitSelectionMode() {
+            isSelectionMode = false;
+            selectedPhotos.clear();
+            
+            const body = document.body;
+            const selectionBtn = document.getElementById('selectionModeBtn');
+            const selectionToolbar = document.getElementById('selectionToolbar');
+            
+            body.classList.remove('selection-mode');
+            selectionBtn.textContent = 'Seleccionar fotos';
+            selectionBtn.classList.remove('active');
+            selectionToolbar.classList.remove('active');
+            
+            // Remover selección visual de todas las fotos
+            document.querySelectorAll('.photo-item.selected').forEach(item => {
+                item.classList.remove('selected');
+                const checkbox = item.querySelector('.select-checkbox');
+                if (checkbox) {
+                    checkbox.classList.remove('checked');
+                }
+            });
+            
+            updateSelectionInfo();
+        }
+
+        function togglePhotoSelection(photoElement, photoId) {
+            const checkbox = photoElement.querySelector('.select-checkbox');
+            
+            if (selectedPhotos.has(photoId)) {
+                selectedPhotos.delete(photoId);
+                photoElement.classList.remove('selected');
+                checkbox.classList.remove('checked');
+            } else {
+                selectedPhotos.add(photoId);
+                photoElement.classList.add('selected');
+                checkbox.classList.add('checked');
+            }
+            
+            updateSelectionInfo();
+        }
+
+        function updateSelectionInfo() {
+            const count = selectedPhotos.size;
+            const selectionInfo = document.getElementById('selectionInfo');
+            selectionInfo.textContent = `${count} foto${count !== 1 ? 's' : ''} seleccionada${count !== 1 ? 's' : ''}`;
+        }
+
+        function updateSelectionButtonVisibility() {
+            const selectionBtn = document.getElementById('selectionModeBtn');
+            const hasPhotos = document.querySelectorAll('.photo-item').length > 0;
+            
+            if (groupCode === '0000' && hasPhotos) {
+                selectionBtn.style.display = 'inline-block';
+            } else {
+                selectionBtn.style.display = 'none';
+                // Si no se cumple la condición, salir del modo de selección si está activo
+                if (isSelectionMode) {
+                    exitSelectionMode();
+                }
+            }
+        }
+
+        function showDeleteModal() {
+            if (selectedPhotos.size === 0) {
+                showNotification('No hay fotos seleccionadas', 'error');
+                return;
+            }
+            
+            const deleteModal = document.getElementById('deleteModal');
+            const deleteCount = document.getElementById('deleteCount');
+            const deleteApiKey = document.getElementById('deleteApiKey');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            
+            deleteCount.textContent = selectedPhotos.size;
+            deleteApiKey.value = '';
+            confirmBtn.disabled = true;
+            deleteModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideDeleteModal() {
+            const deleteModal = document.getElementById('deleteModal');
+            const deleteApiKey = document.getElementById('deleteApiKey');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            
+            deleteModal.classList.remove('active');
+            deleteApiKey.value = '';
+            confirmBtn.disabled = true;
+            document.body.style.overflow = 'auto';
+        }
+
+        async function confirmDelete() {
+            const apiKey = document.getElementById('deleteApiKey').value.trim();
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            
+            if (!apiKey) {
+                showNotification('Por favor ingresa la clave de API', 'error');
+                return;
+            }
+            
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Eliminando...';
+            
+            try {
+                const photoIds = Array.from(selectedPhotos);
+                const response = await fetch(`${API_BASE_URL}/photos/delete-multiple`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        photoIds: photoIds,
+                        apiKey: apiKey
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showNotification(`¡${data.deletedCount} foto(s) eliminada(s) con éxito!`);
+                    
+                    // Remover fotos eliminadas del DOM
+                    photoIds.forEach(photoId => {
+                        const photoElement = document.querySelector(`[data-photo-id="${photoId}"]`);
+                        if (photoElement) {
+                            photoElement.remove();
+                        }
+                    });
+                    
+                    // Limpiar selección y salir del modo de selección
+                    selectedPhotos.clear();
+                    exitSelectionMode();
+                    hideDeleteModal();
+                    
+                    // Actualizar visibilidad del botón de selección
+                    updateSelectionButtonVisibility();
+                    
+                    // Recargar la galería si no quedan fotos
+                    if (document.querySelectorAll('.photo-item').length === 0) {
+                        loadPhotos(1, false);
+                    }
+                } else {
+                    throw new Error(data.msg || 'Error al eliminar las fotos');
+                }
+                
+            } catch (error) {
+                console.error('Error eliminando fotos:', error);
+                showNotification(error.message || 'Error al eliminar las fotos', 'error');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Eliminar';
+            }
+        }
+
+        // ========================================
+        // FUNCIONES DE CARGA DE FOTOS
+        // ========================================
+        
+        async function loadPhotos(page = 1, append = false) {
+            if (isLoading) return;
+            
+            isLoading = true;
+            
+            if (page === 1) {
+                document.getElementById('loadingSpinner').style.display = 'block';
+            } else {
+                document.getElementById('loadingSpinner').style.display = 'block';
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/photos?page=${page}&limit=12`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                currentPage = data.currentPage;
+                totalPages = data.totalPages;
+                
+                if (data.photos.length === 0 && page === 1) {
+                    showEmptyState();
+                } else {
+                    hideEmptyState();
+                    displayPhotos(data.photos, append);
+                }
+                
+                // Actualizar visibilidad del botón de selección
+                updateSelectionButtonVisibility();
+
+            } catch (error) {
+                console.error('Error cargando fotos:', error);
+                showNotification('Error al cargar las fotos', 'error');
+            } finally {
+                isLoading = false;
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        }
+
+        function displayPhotos(photos, append = false) {
+            const galleryGrid = document.getElementById('galleryGrid');
+            
+            if (!append) {
+                galleryGrid.innerHTML = '';
+                allPhotos = []; // Limpiar array de fotos
+            }
+
+            photos.forEach(photo => {
+                const photoElement = createPhotoElement(photo);
+                galleryGrid.appendChild(photoElement);
+            });
+        }
+
+        function createPhotoElement(photo) {
+            const photoItem = document.createElement('div');
+            photoItem.className = 'photo-item';
+            photoItem.dataset.photoId = photo._id;
+            
+            // Guardar referencia de la foto
+            allPhotos.push(photo);
+            
+            const uploadDate = new Date(photo.createdAt).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+
+            photoItem.innerHTML = `
+                <img src="${API_BASE_URL?.replace('/api','')}${photo.path}" alt="Foto del álbum" loading="lazy">
+                <div class="photo-overlay">
+                    <div class="photo-info">
+                        <span class="photo-date">${uploadDate}</span>
+                        <span class="photo-code">${photo.uploaded_by_code || 'Invitado'}</span>
+                    </div>
+                </div>
+                <div class="select-checkbox">✓</div>
+            `;
+
+            // Configurar eventos de clic
+            photoItem.addEventListener('click', (e) => {
+                if (isSelectionMode) {
+                    e.stopPropagation();
+                    togglePhotoSelection(photoItem, photo._id);
+                } else {
+                    openPhotoModal(photo.path);
+                }
+            });
+
+            return photoItem;
+        }
+
+        function showEmptyState() {
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('galleryGrid').style.display = 'none';
+        }
+
+        function hideEmptyState() {
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('galleryGrid').style.display = 'grid';
+        }
+
+        // ========================================
+        // FUNCIONES DE INFINITE SCROLL
+        // ========================================
+        
+        function setupInfiniteScroll() {
+            window.addEventListener('scroll', () => {
+                if (isLoading || currentPage >= totalPages) return;
+                
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const windowHeight = window.innerHeight;
+                const documentHeight = document.documentElement.scrollHeight;
+                
+                // Cargar más fotos cuando esté cerca del final
+                if (scrollTop + windowHeight >= documentHeight - 1000) {
+                    loadPhotos(currentPage + 1, true);
+                }
+            });
+        }
+
+        // ========================================
+        // FUNCIONES DE SUBIDA DE FOTOS
+        // ========================================
+        
+        let cameraStream = null;
+        let currentFacingMode = 'environment'; // 'environment' = trasera, 'user' = frontal
+
+        function openCamera() {
+            // Verificar si el navegador soporta la API de cámara
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                // Mostrar notificación de permisos
+                showNotification('Solicitando acceso a la cámara...', 'success');
+                
+                // Iniciar cámara
+                startCamera();
+            } else {
+                // Fallback para navegadores que no soportan la API
+                showNotification('Navegador no compatible. Usando galería...', 'error');
+                document.getElementById('galleryInput').click();
+            }
+        }
+
+        function startCamera() {
+            // Detener stream anterior si existe
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+            }
+
+            // Intentar acceder a la cámara
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: currentFacingMode,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            })
+            .then((stream) => {
+                cameraStream = stream;
+                const video = document.getElementById('cameraVideo');
+                video.srcObject = stream;
+                
+                // Mostrar modal de cámara
+                document.getElementById('cameraModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                // Configurar eventos de touch para focus
+                setupCameraEvents();
+                
+                showNotification('Cámara activada. Toca para enfocar', 'success');
+            })
+            .catch((error) => {
+                console.log('Error accediendo a la cámara:', error);
+                
+                if (error.name === 'NotAllowedError') {
+                    showNotification('Permisos de cámara denegados. Usando galería...', 'error');
+                } else if (error.name === 'NotFoundError') {
+                    showNotification('No se encontró cámara. Usando galería...', 'error');
+                } else {
+                    showNotification('Error accediendo a la cámara. Usando galería...', 'error');
+                }
+                
+                // Fallback: abrir galería
+                document.getElementById('galleryInput').click();
+            });
+        }
+
+        function flipCamera() {
+            // Cambiar entre cámara frontal y trasera
+            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+            startCamera();
+        }
+
+        function setupCameraEvents() {
+            const video = document.getElementById('cameraVideo');
+            const focus = document.getElementById('cameraFocus');
+            
+            // Evento de touch para focus
+            video.addEventListener('touchstart', (e) => {
+                const rect = video.getBoundingClientRect();
+                const x = e.touches[0].clientX - rect.left;
+                const y = e.touches[0].clientY - rect.top;
+                
+                // Mostrar indicador de focus
+                focus.style.left = x + 'px';
+                focus.style.top = y + 'px';
+                focus.classList.add('active');
+                
+                // Remover después de la animación
+                setTimeout(() => {
+                    focus.classList.remove('active');
+                }, 600);
+            });
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('cameraCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Configurar canvas con las dimensiones del video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Dibujar el frame actual del video en el canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convertir canvas a blob
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    // Crear un archivo desde el blob
+                    const file = new File([blob], `camera-photo-${Date.now()}.jpg`, {
+                        type: 'image/jpeg'
+                    });
+                    
+                    // Subir la foto
+                    uploadPhotos([file]);
+                    
+                    // Cerrar cámara
+                    closeCamera();
+                } else {
+                    showNotification('Error al capturar la foto', 'error');
+                }
+            }, 'image/jpeg', 0.8);
+        }
+
+        function closeCamera() {
+            // Detener el stream de la cámara
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            
+            // Ocultar modal
+            document.getElementById('cameraModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function openFileDialog() {
+            document.getElementById('galleryInput').click();
+        }
+
+        // Configurar event listeners para los inputs de archivo
+        document.getElementById('cameraInput').addEventListener('change', handleFileSelect);
+        document.getElementById('galleryInput').addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            if (files.length > 0) {
+                uploadPhotos(files);
+            }
+            // Limpiar el input
+            event.target.value = '';
+        }
+
+        async function uploadPhotos(files) {
+            if (isUploading) {
+                showNotification('Ya hay una subida en progreso', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            
+            // Agregar groupCode si existe
+            if (groupCode) {
+                formData.append('groupCode', groupCode);
+            }
+            
+            files.forEach(file => {
+                formData.append('photos', file);
+            });
+
+            try {
+                // Mostrar modal de progreso
+                showUploadProgress();
+                updateUploadProgress(10, 'Conectando con el servidor...');
+
+                // Crear AbortController para cancelar la subida
+                uploadController = new AbortController();
+
+                // Simular progreso durante la subida
+                const progressInterval = setInterval(() => {
+                    const currentProgress = parseInt(document.getElementById('uploadProgressFill').style.width) || 0;
+                    if (currentProgress < 90) {
+                        updateUploadProgress(currentProgress + 10, 'Subiendo archivos...');
+                    }
+                }, 500);
+
+                const response = await fetch(`${API_BASE_URL}/photos/upload`, {
+                    method: 'POST',
+                    body: formData,
+                    signal: uploadController.signal
+                });
+
+                // Limpiar intervalo de progreso
+                clearInterval(progressInterval);
+                updateUploadProgress(95, 'Procesando respuesta...');
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    updateUploadProgress(100, '¡Completado!');
+                    
+                    // Esperar un momento para mostrar el 100%
+                    setTimeout(() => {
+                        hideUploadProgress();
+                        showNotification(`¡${data.photos.length} foto(s) subida(s) con éxito!`);
+                        
+                        // Recargar la galería para mostrar las nuevas fotos
+                        loadPhotos(1, false);
+                        
+                        // Actualizar visibilidad del botón de selección
+                        updateSelectionButtonVisibility();
+                    }, 500);
+                } else {
+                    throw new Error(data.msg || 'Error al subir las fotos');
+                }
+
+            } catch (error) {
+                console.error('Error subiendo fotos:', error);
+                
+                if (error.name === 'AbortError') {
+                    showNotification('Subida cancelada', 'error');
+                } else {
+                    showNotification(error.message || 'Error al subir las fotos', 'error');
+                }
+                
+                hideUploadProgress();
+            } finally {
+                uploadController = null;
+            }
+        }
+
+        // ========================================
+        // FUNCIONES DEL MODAL
+        // ========================================
+        
+        function openPhotoModal(imagePath) {
+            const modal = document.getElementById('photoModal');
+            const modalImage = document.getElementById('modalImage');
+            
+            modalImage.src = `${API_BASE_URL?.replace('/api','')}${imagePath}`;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('photoModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Cerrar modales con tecla Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+                closeCamera();
+                if (isSelectionMode) {
+                    exitSelectionMode();
+                }
+            }
+        });
+
+        // Habilitar botón de confirmación cuando se ingrese la clave de API
+        document.getElementById('deleteApiKey').addEventListener('input', function() {
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            confirmBtn.disabled = this.value.trim().length === 0;
+        });
+    </script>
+</body>
+</html>
