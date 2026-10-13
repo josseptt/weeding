@@ -8,6 +8,9 @@
     <title>Admin - Estado de Confirmaciones</title>
     <script src="cache-bust.js"></script>
     <link rel="stylesheet" href="admin.css" id="css-admin">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
     <style>
         /* CSS crítico para evitar FOUC */
         * {
@@ -90,7 +93,7 @@
             font-style: italic;
             color: white;
             margin-bottom: 20px;
-            font-family: 'Great Vibes', cursive;
+            font-family: 'Parisienne', cursive;
             animation: fadeInOut 2s ease-in-out infinite;
         }
 
@@ -978,7 +981,7 @@
                 const group = groupedGuests[groupCode];
                 const totalPeople = group ? group.total : 0;
                 
-                const url = `https://tinyurl.com/boda-jose-y-joseline?code=${groupCode}`;
+                const url = `https://tinyurl.com/boda-nelson-y-yohelna?code=${groupCode}`;
                 
                 const whatsappMessage = `✨💍 ¡Nos casamos! 💍✨
 
@@ -990,10 +993,10 @@ En el siguiente enlace encontrarás todos los detalles de nuestra celebración:
 
 🕊️ Esta invitación es válida para ${totalPeople} personas, las cuales podrás confirmar directamente en el enlace anterior.
 
-Agradeceríamos mucho que nos confirmes tu asistencia antes del 5 de noviembre, para poder organizar todo con cariño y cuidado.
+Agradeceríamos mucho que nos confirmes tu asistencia antes del 10 de Octubre, para poder organizar todo con cariño y cuidado.
 
 Con mucho amor,
-José Delgado & Joseline Fonseca 💫`;
+Nelson Álvarez & Yohelna Rostran 💫`;
                 
                 try {
                     await navigator.clipboard.writeText(whatsappMessage);
