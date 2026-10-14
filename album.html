@@ -305,6 +305,9 @@
         let totalPages = 1;
         let isLoading = false;
         let groupCode = '';
+        // Boda/evento de este álbum. Un mismo álbum sirve a todas las bodas:
+        // se distingue por el parámetro ?evento= de la URL.
+        let eventSlug = 'nelson-yohelna';
         let uploadController = null;
         let isUploading = false;
         let isSelectionMode = false;
@@ -316,8 +319,9 @@
         // ========================================
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Obtener código de grupo de la URL si existe
+            // Obtener código de grupo y evento/boda de la URL si existen
             groupCode = getGroupCodeFromURL();
+            eventSlug = getEventFromURL();
             
             // Mostrar código de grupo si existe
             if (groupCode) {
@@ -340,6 +344,12 @@
         function getGroupCodeFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get('code') || urlParams.get('groupCode') || '';
+        }
+
+        function getEventFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            // Si la URL no trae evento, usamos la boda por defecto (retrocompatibilidad).
+            return (urlParams.get('evento') || 'nelson-yohelna').toLowerCase().trim();
         }
 
         function showNotification(message, type = 'success') {
@@ -511,14 +521,15 @@
             
             try {
                 const photoIds = Array.from(selectedPhotos);
-                const response = await fetch(`${API_BASE_URL}/photos/delete-multiple`, {
+                const response = await fetch(`${API_BASE_URL}/photos/delete-multiple?evento=${encodeURIComponent(eventSlug)}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         photoIds: photoIds,
-                        apiKey: apiKey
+                        apiKey: apiKey,
+                        evento: eventSlug
                     })
                 });
                 
@@ -576,7 +587,7 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE_URL}/photos?page=${page}&limit=12`);
+                const response = await fetch(`${API_BASE_URL}/photos?page=${page}&limit=12&evento=${encodeURIComponent(eventSlug)}`);
                 
                 if (!response.ok) {
                     throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -848,12 +859,16 @@
             }
 
             const formData = new FormData();
-            
+
+            // Evento/boda de estas fotos (también va en el query para que el
+            // servidor sepa la subcarpeta antes de recibir los archivos).
+            formData.append('evento', eventSlug);
+
             // Agregar groupCode si existe
             if (groupCode) {
                 formData.append('groupCode', groupCode);
             }
-            
+
             files.forEach(file => {
                 formData.append('photos', file);
             });
@@ -874,7 +889,7 @@
                     }
                 }, 500);
 
-                const response = await fetch(`${API_BASE_URL}/photos/upload`, {
+                const response = await fetch(`${API_BASE_URL}/photos/upload?evento=${encodeURIComponent(eventSlug)}`, {
                     method: 'POST',
                     body: formData,
                     signal: uploadController.signal

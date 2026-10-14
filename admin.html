@@ -175,7 +175,12 @@
             <div class="header-content">
                 <div class="header-text">
                     <h1>Estado de Confirmaciones</h1>
-                    <p>Panel de administración - Invitaciones de boda</p>
+                    <p>Panel de administración - <span id="eventLabel">Invitaciones de boda</span></p>
+                    <label style="display:inline-flex;align-items:center;gap:8px;margin-top:8px;font-size:0.9em;color:#fff;">
+                        Boda:
+                        <select id="eventSelector" style="padding:6px 10px;border-radius:8px;border:none;font-size:0.95em;cursor:pointer;">
+                        </select>
+                    </label>
                 </div>
                 <button class="add-guest-btn" id="addGuestBtn" title="Agregar invitado">
                     <span class="add-icon">+</span>
@@ -226,6 +231,32 @@
         const API_BASE_URL = 'https://msgroomer.com/api';
         const API_KEY = 'nacho123';
 
+        // ========================================
+        // CONFIGURACIÓN POR BODA/EVENTO
+        // ========================================
+        // Una sola página admin administra todas las bodas. Se elige con ?evento=slug.
+        // Para una pareja nueva, agrega aquí su entrada (slug -> datos).
+        const EVENTS = {
+            'nelson-yohelna': {
+                label: 'Nelson & Yohelna',
+                names: 'Nelson Álvarez & Yohelna Rostran',
+                inviteBaseUrl: 'https://tinyurl.com/boda-nelson-y-yohelna',
+                rsvpDeadline: '10 de Octubre'
+            }
+            // 'pareja2-slug': { label: '...', names: '...', inviteBaseUrl: '...', rsvpDeadline: '...' }
+        };
+
+        function getEventFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return (urlParams.get('evento') || 'nelson-yohelna').toLowerCase().trim();
+        }
+
+        // Boda actualmente seleccionada en el panel.
+        let currentEvent = getEventFromURL();
+        function currentEventConfig() {
+            return EVENTS[currentEvent] || { label: currentEvent, names: '', inviteBaseUrl: '', rsvpDeadline: '' };
+        }
+
         // Estado de la aplicación
         let guestsData = [];
         let groupedGuests = {};
@@ -242,7 +273,7 @@
             guestsContainer.style.display = 'none';
 
             try {
-                const response = await fetch(`${API_BASE_URL}/guests`, {
+                const response = await fetch(`${API_BASE_URL}/guests?evento=${encodeURIComponent(currentEvent)}`, {
                     method: 'GET',
                     headers: {
                         'X-API-KEY': API_KEY,
@@ -592,8 +623,50 @@
             });
         }
 
+        // Rellena el selector de bodas (y el título) con los eventos del API.
+        async function initEventSelector() {
+            const selector = document.getElementById('eventSelector');
+            const labelEl = document.getElementById('eventLabel');
+            if (labelEl) labelEl.textContent = currentEventConfig().label;
+            if (!selector) return;
+
+            // Empezamos con las bodas conocidas localmente (EVENTS)
+            const slugs = new Map(Object.keys(EVENTS).map(s => [s, EVENTS[s].label]));
+
+            // Las enriquecemos con las bodas reales que existan en el API
+            try {
+                const res = await fetch(`${API_BASE_URL}/events`, { headers: { 'X-API-KEY': API_KEY } });
+                if (res.ok) {
+                    const list = await res.json();
+                    list.forEach(e => {
+                        const label = (EVENTS[e.evento] && EVENTS[e.evento].label) || e.evento;
+                        slugs.set(e.evento, `${label} (${e.confirmados}/${e.total})`);
+                    });
+                }
+            } catch (e) { /* si el endpoint falla, usamos solo EVENTS locales */ }
+
+            if (!slugs.has(currentEvent)) slugs.set(currentEvent, currentEventConfig().label);
+
+            selector.innerHTML = '';
+            slugs.forEach((label, slug) => {
+                const opt = document.createElement('option');
+                opt.value = slug;
+                opt.textContent = label;
+                if (slug === currentEvent) opt.selected = true;
+                selector.appendChild(opt);
+            });
+
+            // Al cambiar de boda, recargamos con el nuevo ?evento=
+            selector.addEventListener('change', function() {
+                const params = new URLSearchParams(window.location.search);
+                params.set('evento', this.value);
+                window.location.search = params.toString();
+            });
+        }
+
         // Cargar datos al inicializar la página
         document.addEventListener('DOMContentLoaded', function() {
+            initEventSelector();
             loadGuestsData();
             
             // Configurar funcionalidad de búsqueda
@@ -808,6 +881,7 @@
                             },
                             body: JSON.stringify({
                                 apiKey: apiKey,
+                                evento: currentEvent,
                                 action: 'CREATE',
                                 data: {
                                     nombre: guest.nombre,
@@ -906,6 +980,7 @@
                         },
                         body: JSON.stringify({
                             apiKey: apiKey,
+                            evento: currentEvent,
                             action: 'UPDATE',
                             data: {
                                 _id: guestId,
@@ -953,6 +1028,7 @@
                         },
                         body: JSON.stringify({
                             apiKey: 'nacho123',
+                            evento: currentEvent,
                             action: 'DELETE',
                             data: {
                                 ids: [guestId]
@@ -980,8 +1056,9 @@
                 // Buscar el grupo para obtener la cantidad de personas
                 const group = groupedGuests[groupCode];
                 const totalPeople = group ? group.total : 0;
-                
-                const url = `https://tinyurl.com/boda-nelson-y-yohelna?code=${groupCode}`;
+                const cfg = currentEventConfig();
+
+                const url = `${cfg.inviteBaseUrl}?code=${groupCode}`;
                 
                 const whatsappMessage = `✨💍 ¡Nos casamos! 💍✨
 
@@ -993,10 +1070,10 @@ En el siguiente enlace encontrarás todos los detalles de nuestra celebración:
 
 🕊️ Esta invitación es válida para ${totalPeople} personas, las cuales podrás confirmar directamente en el enlace anterior.
 
-Agradeceríamos mucho que nos confirmes tu asistencia antes del 10 de Octubre, para poder organizar todo con cariño y cuidado.
+Agradeceríamos mucho que nos confirmes tu asistencia antes del ${cfg.rsvpDeadline}, para poder organizar todo con cariño y cuidado.
 
 Con mucho amor,
-Nelson Álvarez & Yohelna Rostran 💫`;
+${cfg.names} 💫`;
                 
                 try {
                     await navigator.clipboard.writeText(whatsappMessage);

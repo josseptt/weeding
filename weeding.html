@@ -565,7 +565,7 @@ Al momento de reservar, solo deben indicar que asistirán a nuestra boda para ap
                         <div class="block-text">
                             Comparte con nosotros tus fotografías y videos del evento. Crea recuerdos hermosos que durarán para siempre.
                         </div>
-                        <a href="https://msgroomer.com/album" class="block-button" id="albumLink">Ir al álbum</a>
+                        <a href="https://msgroomer.com/album?evento=nelson-yohelna" class="block-button" id="albumLink">Ir al álbum</a>
                     </div>
                 </div>
             </div>
@@ -730,7 +730,7 @@ Al momento de reservar, solo deben indicar que asistirán a nuestra boda para ap
         function updateAlbumLink(code) {
             const albumLink = document.getElementById('albumLink');
             if (albumLink && code) {
-                albumLink.href = `https://msgroomer.com/album?code=${encodeURIComponent(code)}`;
+                albumLink.href = `https://msgroomer.com/album?code=${encodeURIComponent(code)}&evento=${encodeURIComponent(EVENT)}`;
             }
         }
 
@@ -787,6 +787,11 @@ Al momento de reservar, solo deben indicar que asistirán a nuestra boda para ap
         // ========================================
         // URL base de la API - CAMBIAR POR LA URL REAL DE TU API
         const API_BASE_URL = 'https://msgroomer.com/api';
+
+        // Slug del evento/boda de ESTA invitación. Aísla invitados y fotos de
+        // otras bodas que usan la misma API. (Para una nueva pareja, duplica este
+        // archivo y cambia solo este valor por su propio slug.)
+        const EVENT = 'nelson-yohelna';
         
         // Endpoint: GET /api/guests/{code}
         // Respuesta esperada:
@@ -828,7 +833,7 @@ Al momento de reservar, solo deben indicar que asistirán a nuestra boda para ap
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ code: code })
+                    body: JSON.stringify({ code: code, evento: EVENT })
                 });
 
                 if (!response.ok) {
@@ -887,7 +892,7 @@ Al momento de reservar, solo deben indicar que asistirán a nuestra boda para ap
         // Función para obtener datos de invitados desde la API
         async function fetchGuestData(code) {
             try {
-                const response = await fetch(`${API_BASE_URL}/guests/${code}`, {
+                const response = await fetch(`${API_BASE_URL}/guests/${code}?evento=${encodeURIComponent(EVENT)}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1199,10 +1204,11 @@ Al momento de reservar, solo deben indicar que asistirán a nuestra boda para ap
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         code: currentCode,    // Código del grupo para validación en el backend
                         id: guestId,         // ID único del invitado
-                        confirmar: confirmar // Estado de confirmación (true/false)
+                        confirmar: confirmar, // Estado de confirmación (true/false)
+                        evento: EVENT        // Boda a la que pertenece este invitado
                     })
                 });
 
